@@ -26,15 +26,94 @@
     <main>
         <section id="database">
             <h1>Database</h1>
-            <p>This page will contain the database extracted from Allacci's catalogue.</p>
-            <br>
+            <p>Search the database extracted from Allacci's catalogue.</p>
+            <p>Warning! Beta version: database and search mask still under construction.</p>
+            <p>Found an error? <a href="none">Click here</a> to report it, thank you very much!</p>
+
+<select id="searchField">
+  <option value="entry">Entry</option>
+  <option value="title">Title</option>
+  <option value="subtitle">Subtitle</option>
+  <option value="author">Author</option>
+  <option value="genre">Genre</option>
+  <option value="mode">Mode</option>
+  <option value="location">Location</option>
+  <option value="publisher">Publisher</option>
+  <option value="year">Year</option>
+  <option value="format">Format</option>
+  <option value="libretto">Libretto</option>
+  <option value="translation">Translation</option>
+</select>
+<input type="text" id="searchTerm" placeholder="Enter search term">
+<button onclick="performSearch()">Search</button>
+<button onclick="resetSearch()">Reset</button>
+<div id="searchResults"></div>
+
+<script>
+  // URL to your JSON database
+  const jsonUrl = "https://allacci-digitale.github.io/data/database.json";
+
+  // Function to perform the search
+  async function performSearch() {
+    const searchField = document.getElementById("searchField").value;
+    const searchTerm = document.getElementById("searchTerm").value.toLowerCase();
+
+    try {
+      // Fetch the JSON data
+      const response = await fetch(jsonUrl);
+      const jsonData = await response.json();
+
+      // Filter the data based on search criteria
+      const results = jsonData.filter(entry => {
+        const fieldValue = entry[searchField].toLowerCase();
+        return fieldValue.includes(searchTerm);
+      });
+
+      // Display search results
+      const searchResultsElement = document.getElementById("searchResults");
+      searchResultsElement.innerHTML = ""; // Clear previous results
+
+      if (results.length > 0) {
+        const table = document.createElement("table");
+        const headerRow = table.insertRow();
+        Object.keys(results[0]).forEach(key => {
+          const headerCell = headerRow.insertCell();
+          headerCell.textContent = key;
+        });
+
+        results.forEach(result => {
+          const row = table.insertRow();
+          Object.values(result).forEach(value => {
+            const cell = row.insertCell();
+            cell.textContent = value;
+          });
+        });
+
+        searchResultsElement.appendChild(table);
+      } else {
+        searchResultsElement.textContent = "No results found for the specified search criteria.";
+      }
+    } catch (error) {
+      console.error("Error fetching or parsing JSON data:", error);
+    }
+  }
+  
+    // Function to reset the search
+  function resetSearch() {
+    document.getElementById("searchTerm").value = ""; // Clear search term
+    document.getElementById("searchResults").innerHTML = ""; // Clear search results
+  }
+  
+</script>
+            
             <h2>Downloads</h2>
-            <p>Full database (under construction!) in <a href="https://allacci-digitale.github.io/data/allacci-transformed-database.csv">CSV</a>, YAML, or RDF format.</p>
-            <p>Latest version of the <a href="https://allacci-digitale.github.io/data/allacci-cleaned-text.txt">curated transcription (TXT)</a>.</p>
+            <p>Full database (under construction!) in <a href="https://allacci-digitale.github.io/data/database.csv">CSV</a> or <a href="https://allacci-digitale.github.io/data/database.json">JSON</a> format.</p>
+            <p>Latest version of the <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">curated transcription (TXT)</a>.</p>
             <p><a href="https://archive.org/details/drammaturgia00alla">Clean copy of the original</a>, in various formats, from the <i>Internet Archive</i>.</p>
+            </br>
+            </br>
         </section>
     </main>
-
     <footer>
         <p>&copy; 2024</p>
     </footer>

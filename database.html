@@ -27,10 +27,87 @@
         <section id="base di dati">
             <h1>Base di dati</h1>
             <p>Questa pagina conterrà la base di dati estratta dall'Allacci.</p>
-            </br>
+            <p>Attenzione! Versione sperimentale: il database e la maschera di ricerca sono ancora in sviluppo.</p>
+            <p>Trovato un errore? <a href="none">Clicca qui</a> per segnalarlo, grazie mille!</p>
+
+<select id="searchField">
+  <option value="entry">Voce</option>
+  <option value="title">Titolo</option>
+  <option value="subtitle">Sottotitolo</option>
+  <option value="author">Autore</option>
+  <option value="genre">Genere</option>
+  <option value="mode">Metro</option>
+  <option value="location">Luogo di pubblicazione</option>
+  <option value="publisher">Editore</option>
+  <option value="year">Anno</option>
+  <option value="format">Formato</option>
+  <option value="libretto">Libretto?</option>
+  <option value="translation">Traduzione?</option>
+</select>
+<input type="text" id="searchTerm" placeholder="Enter search term">
+<button onclick="performSearch()">Search</button>
+<button onclick="resetSearch()">Reset</button>
+<div id="searchResults"></div>
+
+<script>
+  // URL to your JSON database
+  const jsonUrl = "https://allacci-digitale.github.io/data/database.json";
+
+  // Function to perform the search
+  async function performSearch() {
+    const searchField = document.getElementById("searchField").value;
+    const searchTerm = document.getElementById("searchTerm").value.toLowerCase();
+
+    try {
+      // Fetch the JSON data
+      const response = await fetch(jsonUrl);
+      const jsonData = await response.json();
+
+      // Filter the data based on search criteria
+      const results = jsonData.filter(entry => {
+        const fieldValue = entry[searchField].toLowerCase();
+        return fieldValue.includes(searchTerm);
+      });
+
+      // Display search results
+      const searchResultsElement = document.getElementById("searchResults");
+      searchResultsElement.innerHTML = ""; // Clear previous results
+
+      if (results.length > 0) {
+        const table = document.createElement("table");
+        const headerRow = table.insertRow();
+        Object.keys(results[0]).forEach(key => {
+          const headerCell = headerRow.insertCell();
+          headerCell.textContent = key;
+        });
+
+        results.forEach(result => {
+          const row = table.insertRow();
+          Object.values(result).forEach(value => {
+            const cell = row.insertCell();
+            cell.textContent = value;
+          });
+        });
+
+        searchResultsElement.appendChild(table);
+      } else {
+        searchResultsElement.textContent = "No results found for the specified search criteria.";
+      }
+    } catch (error) {
+      console.error("Error fetching or parsing JSON data:", error);
+    }
+  }
+  
+    // Function to reset the search
+  function resetSearch() {
+    document.getElementById("searchTerm").value = ""; // Clear search term
+    document.getElementById("searchResults").innerHTML = ""; // Clear search results
+  }
+  
+</script>
             <h2>Downloads</h2>
-            <p>Database (ancora in costruzione!) in formato <a href="https://allacci-digitale.github.io/data/allacci-transformed-database.csv">CSV</a>, YAML o RDF.</p>
-            <p>Trascrizione riveduta e corretta <a href="https://allacci-digitale.github.io/data/allacci-cleaned-text.txt">in formato TXT.</a></p>
+            <p>Database (ancora in costruzione!) in formato <a href="https://allacci-digitale.github.io/data/allacci-database.csv">CSV</a>o <a href="https://allacci-digitale.github.io/data/allacci-database.csv">JSON</a>.</p>
+            <p>Trascrizione riveduta e corretta <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">in formato TXT.</a></p>
             <p><a href="https://archive.org/details/drammaturgia00alla">Copia dell'originale</a>, scaricabile in vari formati, dall'<i>Internet Archive</i>.</p>
             
         </section>
