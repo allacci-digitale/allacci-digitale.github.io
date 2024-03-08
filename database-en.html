@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
-    <title>Base di dati - Allacci Digitale</title>
+    <title>Database - Allacci Digitale</title>
 </head>
 
 <body>
@@ -45,7 +45,7 @@
   <option value="translation">Translation</option>
 </select>
 <input type="text" id="searchTerm" placeholder="Enter search term">
-<button onclick="performSearch()">Search</button>
+<button onclick="performSearch()">Search (case-insensitive)</button>
 <button onclick="resetSearch()">Reset</button>
 <div id="searchResults"></div>
 
@@ -63,12 +63,15 @@
       const response = await fetch(jsonUrl);
       const jsonData = await response.json();
 
-      // Filter the data based on search criteria
-      const results = jsonData.filter(entry => {
-        const fieldValue = entry[searchField].toLowerCase();
-        return fieldValue.includes(searchTerm);
-      });
+  // Create a regular expression to match the search term as a whole word
+  const regex = new RegExp(`\\b${searchTerm}\\b`, 'i');
 
+  // Filter the data based on search criteria
+  const results = jsonData.filter(entry => {
+    const fieldValue = entry[searchField];
+    return regex.test(fieldValue);
+  });
+  
       // Display search results
       const searchResultsElement = document.getElementById("searchResults");
       searchResultsElement.innerHTML = ""; // Clear previous results

@@ -26,7 +26,7 @@
     <main>
         <section id="base di dati">
             <h1>Base di dati</h1>
-            <p>Questa pagina conterrà la base di dati estratta dall'Allacci.</p>
+            <p>Cerca nella base di dati estratta dall'Allacci.</p>
             <p>Attenzione! Versione sperimentale: il database e la maschera di ricerca sono ancora in sviluppo.</p>
             <p>Trovato un errore? <a href="none">Clicca qui</a> per segnalarlo, grazie mille!</p>
 
@@ -44,59 +44,64 @@
   <option value="libretto">Libretto?</option>
   <option value="translation">Traduzione?</option>
 </select>
-<input type="text" id="searchTerm" placeholder="Enter search term">
-<button onclick="performSearch()">Search</button>
-<button onclick="resetSearch()">Reset</button>
+<input type="text" id="searchTerm" placeholder="Inserisci un termine di ricerca">
+<button onclick="performSearch()">Cerca (insensibile alle maiuscole)</button>
+<button onclick="resetSearch()">Cancella tutto</button>
 <div id="searchResults"></div>
 
 <script>
   // URL to your JSON database
   const jsonUrl = "https://allacci-digitale.github.io/data/database.json";
 
-  // Function to perform the search
-  async function performSearch() {
-    const searchField = document.getElementById("searchField").value;
-    const searchTerm = document.getElementById("searchTerm").value.toLowerCase();
+// Function to perform the search
+async function performSearch() {
+  const searchField = document.getElementById("searchField").value;
+  const searchTerm = document.getElementById("searchTerm").value.toLowerCase();
 
-    try {
-      // Fetch the JSON data
-      const response = await fetch(jsonUrl);
-      const jsonData = await response.json();
+  try {
+    // Fetch the JSON data
+    const response = await fetch(jsonUrl);
+    const jsonData = await response.json();
 
-      // Filter the data based on search criteria
-      const results = jsonData.filter(entry => {
-        const fieldValue = entry[searchField].toLowerCase();
-        return fieldValue.includes(searchTerm);
+  // Create a regular expression to match the search term as a whole word
+  const regex = new RegExp(`\\b${searchTerm}\\b`, 'i');
+
+  // Filter the data based on search criteria
+  const results = jsonData.filter(entry => {
+    const fieldValue = entry[searchField];
+    return regex.test(fieldValue);
+  });
+
+
+    // Display search results
+    const searchResultsElement = document.getElementById("searchResults");
+    searchResultsElement.innerHTML = ""; // Clear previous results
+
+    if (results.length > 0) {
+      const table = document.createElement("table");
+      const headerRow = table.insertRow();
+      Object.keys(results[0]).forEach(key => {
+        const headerCell = headerRow.insertCell();
+        headerCell.textContent = key;
       });
 
-      // Display search results
-      const searchResultsElement = document.getElementById("searchResults");
-      searchResultsElement.innerHTML = ""; // Clear previous results
-
-      if (results.length > 0) {
-        const table = document.createElement("table");
-        const headerRow = table.insertRow();
-        Object.keys(results[0]).forEach(key => {
-          const headerCell = headerRow.insertCell();
-          headerCell.textContent = key;
+      results.forEach(result => {
+        const row = table.insertRow();
+        Object.values(result).forEach(value => {
+          const cell = row.insertCell();
+          cell.textContent = value;
         });
+      });
 
-        results.forEach(result => {
-          const row = table.insertRow();
-          Object.values(result).forEach(value => {
-            const cell = row.insertCell();
-            cell.textContent = value;
-          });
-        });
-
-        searchResultsElement.appendChild(table);
-      } else {
-        searchResultsElement.textContent = "No results found for the specified search criteria.";
-      }
-    } catch (error) {
-      console.error("Error fetching or parsing JSON data:", error);
+      searchResultsElement.appendChild(table);
+    } else {
+      searchResultsElement.textContent = "Nessun risultato per questi criteri di ricerca.";
     }
+  } catch (error) {
+    console.error("Error fetching or parsing JSON data:", error);
   }
+}
+
   
     // Function to reset the search
   function resetSearch() {
