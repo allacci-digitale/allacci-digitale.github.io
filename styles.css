@@ -63,10 +63,6 @@ footer {
 th:nth-child(2),
 td:nth-child(2) {
     font-size: smaller;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 th,
