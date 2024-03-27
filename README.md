@@ -1,5 +1,7 @@
 # Allacci Digitale
-Showcase website for the digitalisation project of Leone Allacci's _Drammaturgia_ (1755 edition).
 
-_Note to the AIUCD 2024 reviewer: we couldn't anonymise this repo completely since it would prevent the website from being displayed. 
-From the CfP: "Il contributo deve essere anonimizzato togliendo i nomi degli autori e i riferimenti interni, **nei limiti del possibile, senza che ciò impedisca una valutazione accurata della proposta da parte dei revisori**"._
+Showcase website for the digitalisation project of Leone Allacci's *Drammaturgia* (1755 edition).
+
+See the related publication:
+
+Giovannini, Luca, and Giorgia Gallucci (2024). "Digitalizzazione e modellazione della *Drammaturgia* di Leone Allacci". In: *AIUCD 2024 Book of Abstracts*. Catania: Università di Catania (forthcoming).
