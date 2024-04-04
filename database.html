@@ -29,87 +29,59 @@
             <p>Cerca nella base di dati estratta dall'Allacci.</p>
             <p>Attenzione! Versione sperimentale: il database e la maschera di ricerca sono ancora in sviluppo.</p>
             <p>Trovato un errore? <a href="https://docs.google.com/forms/d/e/1FAIpQLSckanlI9U281Qx4tMZxcspXSmP4nirspsNjpEcoKLA_x0cyNw/viewform?usp=sf_link" target="_blank">Clicca qui</a> per segnalarlo, grazie mille!</p>
-
-<select id="searchField">
-  <option value="entry">Voce</option>
-  <option value="title">Titolo</option>
-  <option value="subtitle">Sottotitolo</option>
-  <option value="author">Autore</option>
-  <option value="genre">Genere</option>
-  <option value="mode">Metro</option>
-  <option value="location">Luogo di pubblicazione</option>
-  <option value="publisher">Editore</option>
-  <option value="year">Anno</option>
-  <option value="format">Formato</option>
-  <option value="libretto">Libretto?</option>
-  <option value="translation">Traduzione?</option>
-</select>
-<input type="text" id="searchTerm" placeholder="Inserisci un termine di ricerca">
+  <div>
+  <label for="searchField">Inserisci un termine di ricerca per il campo:</label>
+    <select id="searchField">
+      <option value="entry">Voce</option>
+      <option value="title">Titolo</option>
+      <option value="subtitle">Sottotitolo</option>
+      <option value="author">Autore</option>
+      <option value="genre">Genere</option>
+      <option value="mode">Metro</option>
+      <option value="location">Luogo di pubblicazione</option>
+      <option value="publisher">Editore</option>
+      <option value="year">Anno</option>
+      <option value="format">Formato</option>
+      <!-- <option value="libretto">Libretto?</option>
+      <option value="translation">Traduzione?</option> -->
+    </select>
+    <input type="text" id="searchTerm" placeholder="Isabella Andreini">
+  </div>
+  <div>
+    <label for="searchField2"><span style="font-size: smaller;">[opzionale]</span> Inserisci un altro termine di ricerca per il campo:</label>
+    <select id="searchField2">
+      <option value="entry">Voce</option>
+      <option value="title">Titolo</option>
+      <option value="subtitle">Sottotitolo</option>
+      <option value="author">Autore</option>
+      <option value="genre">Genere</option>
+      <option value="mode">Metro</option>
+      <option value="location">Luogo di pubblicazione</option>
+      <option value="publisher">Editore</option>
+      <option value="year">Anno</option>
+      <option value="format">Formato</option>
+      <!-- <option value="libretto">Libretto?</option>
+      <option value="translation">Traduzione?</option> -->
+    </select>
+    <input type="text" id="searchTerm2" placeholder="commedia">
+  </div>
+  <div>
+    <label for="minYear"><span style="font-size: smaller;">[opzionale]</span> Seleziona un periodo, dal:</label>
+    <input type="number" id="minYear" name="minYear" placeholder="1638">
+    <label for="maxYear">al:</label>
+    <input type="number" id="maxYear" name="maxYear" placeholder="1640">
+  </div>
+  <div>
+    <input type="checkbox" id="translationCheckbox">
+    <label for="translationCheckbox">Solo opere tradotte</label>
+    <input type="checkbox" id="librettoCheckbox">
+    <label for="librettoCheckbox">Solo libretti</label>
+  </div>
+  <p></p>
 <button onclick="performSearch()">Cerca (insensibile alle maiuscole)</button>
 <button onclick="resetSearch()">Cancella tutto</button>
 <div id="searchResults"></div>
-
-<script>
-  // URL to your JSON database
-  const jsonUrl = "https://allacci-digitale.github.io/data/database.json";
-
-// Function to perform the search
-async function performSearch() {
-  const searchField = document.getElementById("searchField").value;
-  const searchTerm = document.getElementById("searchTerm").value.toLowerCase();
-
-  try {
-    // Fetch the JSON data
-    const response = await fetch(jsonUrl);
-    const jsonData = await response.json();
-
-  // Create a regular expression to match the search term as a whole word
-  const regex = new RegExp(`\\b${searchTerm}\\b`, 'i');
-
-  // Filter the data based on search criteria
-  const results = jsonData.filter(entry => {
-    const fieldValue = entry[searchField];
-    return regex.test(fieldValue);
-  });
-
-
-    // Display search results
-    const searchResultsElement = document.getElementById("searchResults");
-    searchResultsElement.innerHTML = ""; // Clear previous results
-
-    if (results.length > 0) {
-      const table = document.createElement("table");
-      const headerRow = table.insertRow();
-      Object.keys(results[0]).forEach(key => {
-        const headerCell = headerRow.insertCell();
-        headerCell.textContent = key;
-      });
-
-      results.forEach(result => {
-        const row = table.insertRow();
-        Object.values(result).forEach(value => {
-          const cell = row.insertCell();
-          cell.textContent = value;
-        });
-      });
-
-      searchResultsElement.appendChild(table);
-    } else {
-      searchResultsElement.textContent = "Nessun risultato per questi criteri di ricerca.";
-    }
-  } catch (error) {
-    console.error("Error fetching or parsing JSON data:", error);
-  }
-}
-
-  
-    // Function to reset the search
-  function resetSearch() {
-    document.getElementById("searchTerm").value = ""; // Clear search term
-    document.getElementById("searchResults").innerHTML = ""; // Clear search results
-  }
-  
-</script>
+<script src="script.js"></script>
             <h2>Downloads</h2>
             <p>Database (ancora in costruzione!) in formato <a href="https://allacci-digitale.github.io/data/database.csv">CSV</a> o <a href="https://allacci-digitale.github.io/data/database.json">JSON</a>.</p>
             <p>Trascrizione riveduta e corretta <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">in formato TXT.</a></p>
