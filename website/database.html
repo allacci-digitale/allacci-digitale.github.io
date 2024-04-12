@@ -1,0 +1,99 @@
+<!-- database.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Base di dati - Allacci Digitale</title>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Pagina iniziale</a></li>
+                <li><a href="bio.html">Autori</a></li>
+                <li><a href="work.html">Opera</a></li>
+                <li><a href="database.html">Base di dati</a></li>
+                <li><a href="credits.html">Contatti</a></li>
+                <li class="button"><a href="database-en.html">🇬🇧 English</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="base di dati">
+            <h1>Base di dati</h1>
+            <p>Cerca nella base di dati estratta dall'Allacci.</p>
+            <p>Attenzione! Versione sperimentale: il database e la maschera di ricerca sono ancora in sviluppo.</p>
+            <p>Trovato un errore? <a href="https://docs.google.com/forms/d/e/1FAIpQLSckanlI9U281Qx4tMZxcspXSmP4nirspsNjpEcoKLA_x0cyNw/viewform?usp=sf_link" target="_blank">Clicca qui</a> per segnalarlo, grazie mille!</p>
+  <div>
+  <label for="searchField">Inserisci un termine di ricerca per il campo:</label>
+    <select id="searchField">
+      <option value="entry">Voce</option>
+      <option value="title">Titolo</option>
+      <option value="subtitle">Sottotitolo</option>
+      <option value="author">Autore</option>
+      <option value="genre">Genere</option>
+      <option value="mode">Metro</option>
+      <option value="location">Luogo di pubblicazione</option>
+      <option value="publisher">Editore</option>
+      <option value="year">Anno</option>
+      <option value="format">Formato</option>
+      <!-- <option value="libretto">Libretto?</option>
+      <option value="translation">Traduzione?</option> -->
+    </select>
+    <input type="text" id="searchTerm" placeholder="Isabella Andreini">
+  </div>
+  <div>
+    <label for="searchField2"><span style="font-size: smaller;">[opzionale]</span> Inserisci un altro termine di ricerca per il campo:</label>
+    <select id="searchField2">
+      <option value="entry">Voce</option>
+      <option value="title">Titolo</option>
+      <option value="subtitle">Sottotitolo</option>
+      <option value="author">Autore</option>
+      <option value="genre">Genere</option>
+      <option value="mode">Metro</option>
+      <option value="location">Luogo di pubblicazione</option>
+      <option value="publisher">Editore</option>
+      <option value="year">Anno</option>
+      <option value="format">Formato</option>
+      <!-- <option value="libretto">Libretto?</option>
+      <option value="translation">Traduzione?</option> -->
+    </select>
+    <input type="text" id="searchTerm2" placeholder="commedia">
+  </div>
+  <div>
+    <label for="minYear"><span style="font-size: smaller;">[opzionale]</span> Seleziona un periodo, dal:</label>
+    <input type="number" id="minYear" name="minYear" placeholder="1638">
+    <label for="maxYear">al:</label>
+    <input type="number" id="maxYear" name="maxYear" placeholder="1640">
+  </div>
+  <div>
+    <input type="checkbox" id="translationCheckbox">
+    <label for="translationCheckbox">Solo opere tradotte</label>
+    <input type="checkbox" id="librettoCheckbox">
+    <label for="librettoCheckbox">Solo libretti</label>
+  </div>
+  <p></p>
+<button onclick="performSearch()">Cerca (insensibile alle maiuscole)</button>
+<button onclick="resetSearch()">Cancella tutto</button>
+<div id="searchResults"></div>
+<script src="script.js"></script>
+            <h2>Downloads</h2>
+            <p>Database (ancora in costruzione!) in formato <a href="https://allacci-digitale.github.io/data/database.csv">CSV</a> o <a href="https://allacci-digitale.github.io/data/database.json">JSON</a>.</p>
+            <p>Trascrizione riveduta e corretta <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">in formato TXT.</a></p>
+            <p><a href="https://archive.org/details/drammaturgia00alla">Copia dell'originale</a>, scaricabile in vari formati, dall'<i>Internet Archive</i>.</p>
+            </br>
+            </br>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024</p>
+    </footer>
+</body>
+
+</html>
