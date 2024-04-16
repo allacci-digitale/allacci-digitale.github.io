@@ -1,5 +1,5 @@
 // URL to your JSON database
-const jsonUrl = "https://allacci-digitale.github.io/data/stable-database.json";
+const jsonUrl = "https://allacci-digitale.github.io/data/database.json";
 
 // Function to perform the search
 async function performSearch() {
