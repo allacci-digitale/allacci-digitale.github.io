@@ -1,6 +1,17 @@
 // URL to your JSON database
 const jsonUrl = "https://allacci-digitale.github.io/data/database.json";
 
+// Function to download CSV file
+function downloadCSV(data, filename) {
+  const csvContent = "data:text/csv;charset=utf-8," + data.map(row => row.join(",")).join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+}
+
 // Function to perform the search
 async function performSearch() {
   const searchField = document.getElementById("searchField").value;
@@ -12,7 +23,7 @@ async function performSearch() {
   const librettoChecked = document.getElementById("librettoCheckbox").checked;
   const translationChecked = document.getElementById("translationCheckbox").checked;
 
-// Get the year range
+  // Get the year range
   const minYear = parseInt(document.getElementById("minYear").value);
   const maxYear = parseInt(document.getElementById("maxYear").value);
 
@@ -48,7 +59,7 @@ async function performSearch() {
 
     // Count search results
     document.getElementById("resultCount").textContent = results.length;
-    
+
     // Display search results
     const searchResultsElement = document.getElementById("searchResults");
     searchResultsElement.innerHTML = ""; // Clear previous results
@@ -70,11 +81,15 @@ async function performSearch() {
       });
 
       searchResultsElement.appendChild(table);
+
+      return results; // Return results for CSV download
     } else {
       searchResultsElement.textContent = "Nessun risultato per questi termini di ricerca / No results found for the specified search criteria.";
+      return []; // Return empty array if no results for CSV download
     }
   } catch (error) {
     console.error("Errore nella lettura o decodifica del file JSON / Error fetching or parsing JSON data:", error);
+    return []; // Return empty array if error for CSV download
   }
 }
 
