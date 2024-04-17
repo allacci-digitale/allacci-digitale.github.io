@@ -45,6 +45,9 @@ async function performSearch() {
         (!librettoChecked || librettoValue) &&
         (!translationChecked || translationValue);
     });
+
+    // Count search results
+    document.getElementById("resultCount").textContent = results.length;
     
     // Display search results
     const searchResultsElement = document.getElementById("searchResults");
