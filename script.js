@@ -100,3 +100,24 @@ function resetSearch() {
   document.getElementById("librettoCheckbox").checked = false; // Uncheck libretto checkbox
   document.getElementById("translationCheckbox").checked = false; // Uncheck translation checkbox
 }
+
+// Function to perform the search and download CSV
+async function performSearchAndDownload() {
+  try {
+    // Perform the search and get results
+    const results = await performSearch();
+
+    // If results are found, download CSV
+    if (results.length > 0) {
+      // Extract data from results
+      const tableData = results.map(result => Object.values(result));
+      // Prompt user to download the CSV file
+      downloadCSV(tableData, "search_results.csv");
+    } else {
+      alert("No results found for the specified search criteria.");
+    }
+  } catch (error) {
+    console.error("Error occurred while performing search and downloading CSV:", error);
+    alert("An error occurred while performing the search and downloading the CSV. Please try again.");
+  }
+}
