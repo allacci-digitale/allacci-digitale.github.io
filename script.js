@@ -31,14 +31,14 @@ async function performSearch() {
       const fieldValue = entry[searchField];
       const fieldValue2 = entry[searchField2];
       const librettoValue = entry['libretto'] === 'True';
-      const translationValue = entry['translation'] === 'True';
+      const translationValue = entry['traduzione/translation'] === 'True';
 
       // Check if both search terms are present in their respective fields
       const term1Match = regex.test(fieldValue);
       const term2Match = regex2.test(fieldValue2);
 
       // Check if the year falls within the specified range
-      const year = parseInt(entry['year']);
+      const year = parseInt(entry['anno/year']);
       const yearInRange = (!isNaN(minYear) && !isNaN(maxYear)) ? (year >= minYear && year <= maxYear) : true;
 
       return term1Match && term2Match && yearInRange &&
