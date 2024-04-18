@@ -19,8 +19,8 @@ function createTableHeader(language) {
 
   // Define column names based on language
   const columnNames = {
-    "Italian": ["","Voce", "Titolo", "Sottotitolo", "Autore", "Genere", "Metro", "Luogo di pubblicazione", "Editore", "Anno", "Formato","Libretto?","Traduzione?"],
-    "English": ["","Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Location", "Publisher", "Year", "Format","Libretto","Translation?"]
+    "Italian": ["Voce", "Titolo", "Sottotitolo", "Autore", "Genere", "Metro", "Luogo di pubblicazione", "Editore", "Anno", "Formato"],
+    "English": ["Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Location", "Publisher", "Year", "Format"]
   };
 
   // Insert column names into header row
@@ -33,7 +33,7 @@ function createTableHeader(language) {
 }
 
 // Function to perform the search
-async function performSearch() {
+async function performSearch(language) {
   const searchField = document.getElementById("searchField").value;
   const searchTerm = document.getElementById("searchTerm").value.toLowerCase();
 
@@ -46,7 +46,6 @@ async function performSearch() {
   // Get the year range
   const minYear = parseInt(document.getElementById("minYear").value);
   const maxYear = parseInt(document.getElementById("maxYear").value);
-
 
   try {
     // Fetch the JSON data
@@ -61,7 +60,8 @@ async function performSearch() {
     const results = jsonData.filter(entry => {
       const fieldValue = entry[searchField];
       const fieldValue2 = entry[searchField2];
-      const librettoValue = entry['libretto'] === 'True';
+      const librettoValue = language === "Italian" ? (entry['libretto'] === 'True' ? 'sì' : 'no') : entry['libretto'];
+      const modeValue = language === "Italian" ? (entry['metro/mode'] === 'prose' ? 'prosa' : 'versi') : entry['metro/mode'];
       const translationValue = entry['traduzione/translation'] === 'True';
 
       // Check if both search terms are present in their respective fields
@@ -77,36 +77,40 @@ async function performSearch() {
         (!translationChecked || translationValue);
     });
 
-    // Count search results
-    document.getElementById("resultCount").textContent = results.length;
-
-    // Display search results
-    const pageLanguage = (window.location.pathname === "/database.html") ? "Italian" : "English";
-    const searchResultsElement = document.getElementById("searchResults");
-    searchResultsElement.innerHTML = ""; // Clear previous results
-
-    if (results.length > 0) {
-      const table = createTableHeader(pageLanguage);
-
-      // Insert data rows
-      results.forEach(result => {
-        const row = table.insertRow();
-        Object.values(result).forEach(value => {
-          const cell = row.insertCell();
-          cell.textContent = value;
-        });
-      });
-
-      searchResultsElement.appendChild(table);
-
-      return results; // Return results for CSV download
-    } else {
-      searchResultsElement.textContent = "Nessun risultato per questi termini di ricerca / No results found for the specified search criteria.";
-      return []; // Return empty array if no results for CSV download
-    }
+    return results;
   } catch (error) {
     console.error("Errore nella lettura o decodifica del file JSON / Error fetching or parsing JSON data:", error);
-    return []; // Return empty array if error for CSV download
+    return [];
+  }
+}
+
+// Function to display search results
+function displaySearchResults(results, language) {
+  const searchResultsElement = document.getElementById("searchResults");
+  searchResultsElement.innerHTML = ""; // Clear previous results
+
+  if (results.length > 0) {
+    const table = createTableHeader(language);
+
+    // Insert data rows
+    results.forEach(result => {
+      const row = table.insertRow();
+      Object.values(result).forEach(value => {
+        const cell = row.insertCell();
+        // Convert values to Italian if necessary
+        if (language === "Italian" && (value === 'True' || value === 'False')) {
+          cell.textContent = value === 'True' ? 'sì' : 'no';
+        } else if (language === "Italian" && (value === 'prose' || value === 'verse')) {
+          cell.textContent = value === 'prose' ? 'prosa' : 'versi';
+        } else {
+          cell.textContent = value;
+        }
+      });
+    });
+
+    searchResultsElement.appendChild(table);
+  } else {
+    searchResultsElement.textContent = "Nessun risultato per questi termini di ricerca / No results found for the specified search criteria.";
   }
 }
 
@@ -122,7 +126,8 @@ function resetSearch() {
 async function performSearchAndDownload() {
   try {
     // Perform the search and get results
-    const results = await performSearch();
+    const pageLanguage = (window.location.pathname === "/database.html") ? "Italian" : "English";
+    const results = await performSearch(pageLanguage);
 
     // If results are found, download CSV
     if (results.length > 0) {
@@ -133,7 +138,9 @@ async function performSearchAndDownload() {
     } else {
       alert("No results found for the specified search criteria.");
     }
-  } catch (error) {
+ 
+
+ } catch (error) {
     console.error("Error occurred while performing search and downloading CSV:", error);
     alert("An error occurred while performing the search and downloading the CSV. Please try again.");
   }
@@ -148,7 +155,7 @@ async function performSearchAndDisplay(language) {
     // Perform the search and get results only if search terms are present or if explicitly triggered
     if (searchTerm !== "" || searchTerm2 !== "" || event.type === "click" || (event.type === "keypress" && event.key === "Enter")) {
       // Perform the search and get results
-      const results = await performSearch();
+      const results = await performSearch(language);
 
       // Display search results
       displaySearchResults(results, language);
