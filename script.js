@@ -12,6 +12,26 @@ function downloadCSV(data, filename) {
   link.click();
 }
 
+// Function to create table header based on page language
+function createTableHeader(language) {
+  const table = document.createElement("table");
+  const headerRow = table.insertRow();
+
+  // Define column names based on language
+  const columnNames = {
+    "Italian": ["Voce", "Titolo", "Sottotitolo", "Autore", "Genere", "Metro", "Luogo di pubblicazione", "Editore", "Anno", "Formato"],
+    "English": ["Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Location", "Publisher", "Year", "Format"]
+  };
+
+  // Insert column names into header row
+  columnNames[language].forEach(columnName => {
+    const headerCell = headerRow.insertCell();
+    headerCell.textContent = columnName;
+  });
+
+  return table;
+}
+
 // Function to perform the search
 async function performSearch() {
   const searchField = document.getElementById("searchField").value;
@@ -61,17 +81,14 @@ async function performSearch() {
     document.getElementById("resultCount").textContent = results.length;
 
     // Display search results
+    const pageLanguage = (window.location.pathname === "/database.html") ? "Italian" : "English";
     const searchResultsElement = document.getElementById("searchResults");
     searchResultsElement.innerHTML = ""; // Clear previous results
 
     if (results.length > 0) {
-      const table = document.createElement("table");
-      const headerRow = table.insertRow();
-      Object.keys(results[0]).forEach(key => {
-        const headerCell = headerRow.insertCell();
-        headerCell.textContent = key;
-      });
+      const table = createTableHeader(pageLanguage);
 
+      // Insert data rows
       results.forEach(result => {
         const row = table.insertRow();
         Object.values(result).forEach(value => {
@@ -121,3 +138,21 @@ async function performSearchAndDownload() {
     alert("An error occurred while performing the search and downloading the CSV. Please try again.");
   }
 }
+
+// Function to perform the search and display results
+async function performSearchAndDisplay(language) {
+  try {
+    // Perform the search and get results
+    const results = await performSearch();
+
+    // Display search results
+    displaySearchResults(results, language);
+  } catch (error) {
+    console.error("Error occurred while performing search and displaying results:", error);
+    alert("An error occurred while performing the search and displaying results. Please try again.");
+  }
+}
+
+// Determine page language and perform search
+const pageLanguage = (window.location.pathname === "/database.html") ? "Italian" : "English";
+performSearchAndDisplay(pageLanguage);
