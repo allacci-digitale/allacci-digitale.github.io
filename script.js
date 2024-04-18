@@ -79,7 +79,7 @@ async function performSearch(language) {
 
     return results;
   } catch (error) {
-    console.error("Errore nella lettura o decodifica del file JSON / Error fetching or parsing JSON data:", error);
+    console.error("Error fetching or parsing JSON data:", error);
     return [];
   }
 }
@@ -125,8 +125,10 @@ function resetSearch() {
 // Function to perform the search and download CSV
 async function performSearchAndDownload() {
   try {
-    // Perform the search and get results
+    // Determine page language
     const pageLanguage = (window.location.pathname === "/database.html") ? "Italian" : "English";
+
+    // Perform the search and get results
     const results = await performSearch(pageLanguage);
 
     // If results are found, download CSV
@@ -138,9 +140,7 @@ async function performSearchAndDownload() {
     } else {
       alert("No results found for the specified search criteria.");
     }
- 
-
- } catch (error) {
+  } catch (error) {
     console.error("Error occurred while performing search and downloading CSV:", error);
     alert("An error occurred while performing the search and downloading the CSV. Please try again.");
   }
