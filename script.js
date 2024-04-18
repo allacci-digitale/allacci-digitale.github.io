@@ -20,7 +20,7 @@ function createTableHeader(language) {
   // Define column names based on language
   const columnNames = {
     "Italian": ["","Voce", "Titolo", "Sottotitolo", "Autore", "Genere", "Metro", "Luogo di pubblicazione", "Editore", "Anno", "Formato","Libretto?","Traduzione?"],
-    "English": ["","Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Location", "Publisher", "Year", "Format","Libretto?","Translation?"]
+    "English": ["","Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Location", "Publisher", "Year", "Format","Libretto","Translation?"]
   };
 
   // Insert column names into header row
@@ -142,17 +142,35 @@ async function performSearchAndDownload() {
 // Function to perform the search and display results
 async function performSearchAndDisplay(language) {
   try {
-    // Perform the search and get results
-    const results = await performSearch();
+    const searchTerm = document.getElementById("searchTerm").value.trim();
+    const searchTerm2 = document.getElementById("searchTerm2").value.trim();
 
-    // Display search results
-    displaySearchResults(results, language);
+    // Perform the search and get results only if search terms are present or if explicitly triggered
+    if (searchTerm !== "" || searchTerm2 !== "" || event.type === "click" || (event.type === "keypress" && event.key === "Enter")) {
+      // Perform the search and get results
+      const results = await performSearch();
+
+      // Display search results
+      displaySearchResults(results, language);
+    }
   } catch (error) {
     console.error("Error occurred while performing search and displaying results:", error);
     alert("An error occurred while performing the search and displaying results. Please try again.");
   }
 }
 
-// Determine page language and perform search
+// Event listeners for search button click and enter key press in search fields
+document.getElementById("searchButton").addEventListener("click", () => performSearchAndDisplay(pageLanguage));
+document.getElementById("searchTerm").addEventListener("keypress", (event) => {
+  if (event.key === "Enter") {
+    performSearchAndDisplay(pageLanguage);
+  }
+});
+document.getElementById("searchTerm2").addEventListener("keypress", (event) => {
+  if (event.key === "Enter") {
+    performSearchAndDisplay(pageLanguage);
+  }
+});
+
+// Determine page language
 const pageLanguage = (window.location.pathname === "/database.html") ? "Italian" : "English";
-performSearchAndDisplay(pageLanguage);
