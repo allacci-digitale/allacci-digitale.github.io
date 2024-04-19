@@ -19,8 +19,8 @@ function createTableHeader(language) {
 
   // Define column names based on language
   const columnNames = {
-    "Italian": ["","Voce", "Titolo", "Sottotitolo", "Autore", "Genere", "Metro", "Luogo di pubblicazione", "Editore", "Anno", "Formato","Libretto?","Compositore","Traduzione?"],
-    "English": ["","Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Location", "Publisher", "Year", "Format","Libretto?","Composer","Translation?"]
+    "Italian": ["","Voce", "Titolo", "Sottotitolo", "Autore", "Genere", "Metro", "Luogo di prima pubblicazione", "Luogo di prima rappresentazione", "Editore", "Anno", "Formato","Libretto?","Compositore","Traduzione?"],
+    "English": ["","Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Place of publication", "Performance venue", "Publisher", "Year", "Format","Libretto?","Composer","Translation?"]
   };
 
   // Insert column names into header row
