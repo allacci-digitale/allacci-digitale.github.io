@@ -51,7 +51,9 @@ footer {
     bottom: 0;
     width: 100%;
 }
-
+footer a {
+    color: inherit; /* This ensures that hyperlinks inherit the color property from the parent (white in this case) */
+}
 
 /* Adjust table size to fit within page boundaries */
 //table {
