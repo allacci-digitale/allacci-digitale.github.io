@@ -89,13 +89,20 @@ async function performSearch() {
       const table = createTableHeader(pageLanguage);
 
       // Insert data rows
-      results.forEach(result => {
-        const row = table.insertRow();
-        Object.values(result).forEach(value => {
-          const cell = row.insertCell();
-          cell.textContent = value;
-        });
-      });
+	  results.forEach(result => {
+	    const row = table.insertRow();
+	    Object.values(result).forEach(value => {
+		  const cell = row.insertCell();
+
+		// Check if the value contains an anchor tag and set innerHTML accordingly
+		  if (typeof value === 'string' && value.includes('<a href=')) {
+		    cell.innerHTML = value;
+		  } else {
+		    cell.textContent = value;
+		  }
+	    });
+	  });
+
 
       searchResultsElement.appendChild(table);
 
