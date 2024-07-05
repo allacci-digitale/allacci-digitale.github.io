@@ -1,4 +1,5 @@
 /* styles.css */
+
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
@@ -9,6 +10,9 @@ header {
     background-color: #800000;
     color: white;
     padding: 1em;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 nav ul {
@@ -36,6 +40,12 @@ nav a {
     order: 1;
 }
 
+/* Style for GitHub icon */
+.nav-github {
+    font-size: 1.5em; /* Adjust size as needed */
+    margin-left: 10px; /* Adjust margin as needed */
+}
+
 main {
     max-width: 800px;
     margin: 20px auto;
@@ -51,19 +61,19 @@ footer {
     bottom: 0;
     width: 100%;
 }
+
 footer a {
     color: inherit; /* This ensures that hyperlinks inherit the color property from the parent (white in this case) */
 }
 
 /* Adjust table size to fit within page boundaries */
-//table {
+table {
     width: 100%;
-    max-width: 100px; /* Limit maximum width for the table */
+    max-width: 100%; /* Limit maximum width for the table */
 }
 
-/* Reduce font size for the cells in the second column */
-th:nth-child(2),
-td:nth-child(2) {
+th:nth-child(1),
+td:nth-child(1) {
     font-size: smaller;
 }
 
@@ -78,6 +88,50 @@ th {
     background-color: #f2f2f2;
 }
 
+.sticky-table-container {
+    max-height: 400px; /* Adjust height as needed */
+    overflow-y: auto; /* Enable vertical scrolling if needed */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    position: relative;
+}
+
+.sticky-table-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sticky-table-container th,
+.sticky-table-container td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid black;
+    white-space: normal; /* Enable text wrapping */
+    word-wrap: break-word; /* Ensure long words break onto the next line */
+}
+
+.sticky-table-container th:nth-child(2),
+.sticky-table-container td:nth-child(2) {
+    position: sticky;
+    font-style: italic;
+    left: 0; /* Stick to the left */
+    background-color: white; /* Header background color */
+    z-index: 2; /* Ensure it overlaps other content */
+}
+
+.sticky-table-container thead th {
+    position: sticky;
+    font-style: normal;
+    top: 0; /* Stick to the top */
+    background: #fff;
+    z-index: 1;
+    /* box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4); /* Optional: add shadow for better visibility */
+}
+
+.sticky-table-container thead th:nth-child(2) {
+    left: 0; /* Stick to the left */
+    z-index: 3; /* Ensure it overlaps other content */
+}
+
 #searchResults {
-  margin-top: 20px; /* Adjust the value as needed to increase or decrease the space */
+    margin-top: 20px; /* Adjust the value as needed to increase or decrease the space */
 }

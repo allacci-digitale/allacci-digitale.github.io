@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Base di dati - Allacci Digitale</title>
 </head>
 
@@ -18,7 +19,10 @@
                 <li><a href="work.html">Opera</a></li>
                 <li><a href="database.html">Base di dati</a></li>
                 <li><a href="credits.html">Contatti</a></li>
-                <li class="button"><a href="database-en.html">🇬🇧 English</a></li>
+                <li class="button">
+					<a href="database-en.html">🇬🇧 English</a>
+					<a href="https://github.com/allacci-digitale/allacci-digitale.github.io" style="margin-left: 10px;">   <i class="fab fa-github nav-github"></i></a>
+				</li>
             </ul>
         </nav>
     </header>
@@ -29,77 +33,75 @@
             <p>Cerca nella base di dati estratta dall'Allacci.</p>
             <p>Attenzione! Versione sperimentale: il database e la maschera di ricerca sono ancora in sviluppo.</p>
             <p>Trovato un errore? <a href="https://docs.google.com/forms/d/e/1FAIpQLSckanlI9U281Qx4tMZxcspXSmP4nirspsNjpEcoKLA_x0cyNw/viewform?usp=sf_link" target="_blank">Clicca qui</a> per segnalarlo, grazie mille!</p>
-  <div>
-  <label for="searchField">Inserisci un termine di ricerca per il campo:</label>
-		<select id="searchField">
-		  <option value="voce/entry">Voce</option>
-		  <option value="titolo/title">Titolo</option>
-		  <option value="sottotitolo/subtitle">Sottotitolo</option>
-		  <option value="autore/author">Autore</option>
-		  <option value="genere/genre">Genere</option>
-		  <option value="metro/mode">Metro</option>
-		  <option value="luogo di pubblicazione/city">Luogo di pubblicazione</option>
-		  <option value="luogo di rappresentazione/location">Luogo di rappresentazione</option>
-		  <option value="editore/publisher">Editore</option>
-		  <option value="anno/year">Anno</option>
-		  <option value="formato/format">Formato</option>
-		  <option value="formato/format">Compositore</option>
-		  <!-- <option value="libretto/libretto">Libretto?</option>
-		  <option value="traduzione/translation">Traduzione?</option> -->
-		</select>
-		<input type="text" id="searchTerm" placeholder="Isabella Andreini">
-		</div>
-		<div>
-		<label for="searchField2"><span style="font-size: smaller;">[opzionale]</span> Inserisci un altro termine di ricerca per il campo:</label>
-		<select id="searchField2">
-		  <option value="voce/entry">Voce</option>
-		  <option value="titolo/title">Titolo</option>
-		  <option value="sottotitolo/subtitle">Sottotitolo</option>
-		  <option value="autore/author">Autore</option>
-		  <option value="genere/genre">Genere</option>
-		  <option value="metro/mode">Metro</option>
-		  <option value="luogo di pubblicazione/city">Luogo di pubblicazione</option>
-		  <option value="luogo di rappresentazione/location">Luogo di rappresentazione</option>
-		  <option value="editore/publisher">Editore</option>
-		  <option value="anno/year">Anno</option>
-		  <option value="formato/format">Formato</option>
-		  <option value="formato/format">Compositore</option>
-		  <!-- <option value="libretto/libretto">Libretto?</option>
-		  <option value="traduzione/translation">Traduzione?</option> -->
-		</select>
-    <input type="text" id="searchTerm2" placeholder="commedia">
-  </div>
-  <div>
-    <label for="minYear"><span style="font-size: smaller;">[opzionale]</span> Seleziona un periodo, dal:</label>
-    <input type="number" id="minYear" name="minYear" placeholder="1638">
-    <label for="maxYear">al:</label>
-    <input type="number" id="maxYear" name="maxYear" placeholder="1640">
-  </div>
-  <div>
-    <input type="checkbox" id="translationCheckbox">
-    <label for="translationCheckbox">Solo opere tradotte</label>
-    <input type="checkbox" id="librettoCheckbox">
-    <label for="librettoCheckbox">Solo libretti</label>
-  </div>
-  <p></p>
-<button onclick="performSearch()">Cerca (insensibile alle maiuscole)</button>
-<button onclick="resetSearch()">Cancella tutto</button>
-<p><b>Risultati trovati</b>: <span id="resultCount">0</span></p>
-<button onclick="performSearchAndDownload()">Scarica i risultati in formato tabella (CSV)</button>
-<div id="searchResults"></div>
-<script src="script.js"></script>
+            <div>
+                <label for="searchField">Inserisci un termine di ricerca per il campo:</label>
+                <select id="searchField">
+                    <option value="voce/entry">Voce</option>
+                    <option value="titolo/title">Titolo</option>
+                    <option value="sottotitolo/subtitle">Sottotitolo</option>
+                    <option value="autore/author">Autore</option>
+                    <option value="genere/genre">Genere</option>
+                    <option value="metro/mode">Metro</option>
+                    <option value="luogo di pubblicazione/city">Luogo di pubblicazione</option>
+                    <option value="luogo di rappresentazione/location">Luogo di rappresentazione</option>
+                    <option value="editore/publisher">Editore</option>
+                    <option value="anno/year">Anno</option>
+                    <option value="formato/format">Formato</option>
+                    <option value="formato/format">Compositore</option>
+                    <!-- <option value="libretto/libretto">Libretto?</option>
+                    <option value="traduzione/translation">Traduzione?</option> -->
+                </select>
+                <input type="text" id="searchTerm" placeholder="Isabella Andreini">
+            </div>
+            <div>
+                <label for="searchField2"><span style="font-size: smaller;">[opzionale]</span> Inserisci un altro termine di ricerca per il campo:</label>
+                <select id="searchField2">
+                    <option value="voce/entry">Voce</option>
+                    <option value="titolo/title">Titolo</option>
+                    <option value="sottotitolo/subtitle">Sottotitolo</option>
+                    <option value="autore/author">Autore</option>
+                    <option value="genere/genre">Genere</option>
+                    <option value="metro/mode">Metro</option>
+                    <option value="luogo di pubblicazione/city">Luogo di pubblicazione</option>
+                    <option value="luogo di rappresentazione/location">Luogo di rappresentazione</option>
+                    <option value="editore/publisher">Editore</option>
+                    <option value="anno/year">Anno</option>
+                    <option value="formato/format">Formato</option>
+                    <option value="formato/format">Compositore</option>
+                    <!-- <option value="libretto/libretto">Libretto?</option>
+                    <option value="traduzione/translation">Traduzione?</option> -->
+                </select>
+                <input type="text" id="searchTerm2" placeholder="commedia">
+            </div>
+            <div>
+                <label for="minYear"><span style="font-size: smaller;">[opzionale]</span> Seleziona un periodo, dal:</label>
+                <input type="number" id="minYear" name="minYear" placeholder="1638">
+                <label for="maxYear">al:</label>
+                <input type="number" id="maxYear" name="maxYear" placeholder="1640">
+            </div>
+            <div>
+                <input type="checkbox" id="translationCheckbox">
+                <label for="translationCheckbox">Solo opere tradotte</label>
+                <input type="checkbox" id="librettoCheckbox">
+                <label for="librettoCheckbox">Solo libretti</label>
+            </div>
+            <p></p>
+            <button id="searchButton">Cerca (insensibile alle maiuscole)</button>
+            <button onclick="resetSearch()">Cancella tutto</button>
+            <p><b>Risultati trovati</b>: <span id="resultCount">0</span></p>
+            <button onclick="performSearchAndDownload()">Scarica i risultati in formato tabella (CSV)</button>
+            <div id="searchResults" class="sticky-table-container"></div>
             <h2>Downloads</h2>
-            <p>Database (ancora in costruzione!) in formato <a href="https://allacci-digitale.github.io/data/database.csv">CSV</a> o <a href="https://allacci-digitale.github.io/data/database.json">JSON</a>.</p>
-            <p>Trascrizione riveduta e corretta <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">in formato TXT.</a></p>
-            <p><a href="https://archive.org/details/drammaturgia00alla">Copia dell'originale</a>, scaricabile in vari formati, dall'<i>Internet Archive</i>.</p>
+            <ul>
+            <li><p>Database in formato <a href="https://allacci-digitale.github.io/data/database.csv">CSV</a> o <a href="https://allacci-digitale.github.io/data/database.json">JSON</a>.</p></li>
+            <li><p>Trascrizione riveduta e corretta <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">in formato TXT.</a></p></li>
+            <li><p><a href="https://archive.org/details/drammaturgia00alla">Copia dell'originale</a>, scaricabile in vari formati, dall'<i>Internet Archive</i>.</p></li>
+            </ul>
             </br>
             </br>
         </section>
     </main>
-
-    <footer>
-        <p><a href="https://github.com/allacci-digitale/allacci-digitale.github.io">Github source repository</a></p>
-    </footer>
+    <script src="script.js"></script>
 </body>
 
 </html>

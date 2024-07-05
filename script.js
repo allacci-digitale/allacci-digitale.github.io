@@ -12,21 +12,23 @@ function downloadCSV(data, filename) {
   link.click();
 }
 
-// Function to create table header based on page language
 function createTableHeader(language) {
   const table = document.createElement("table");
-  const headerRow = table.insertRow();
+  table.classList.add("sticky-table");
+
+  const headerRow = table.createTHead().insertRow(); // Use createTHead for better header management
 
   // Define column names based on language
   const columnNames = {
-    "Italian": ["Voce", "Titolo", "Sottotitolo", "Autore", "Genere", "Metro", "Luogo di prima pubblicazione", "Luogo di prima rappresentazione", "Editore", "Anno", "Formato","Libretto?","Compositore","Traduzione?"],
-    "English": ["Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Place of publication", "Performance venue", "Publisher", "Year", "Format","Libretto?","Composer","Translation?"]
+    "Italian": ["Voce", "Titolo", "Sottotitolo", "Autore", "Genere", "Metro", "Luogo di prima pubblicazione", "Luogo di prima rappresentazione", "Editore", "Anno", "Formato", "Libretto?", "Compositore", "Traduzione?"],
+    "English": ["Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Place of publication", "Performance venue", "Publisher", "Year", "Format", "Libretto?", "Composer", "Translation?"]
   };
 
   // Insert column names into header row
   columnNames[language].forEach(columnName => {
-    const headerCell = headerRow.insertCell();
+    const headerCell = document.createElement("th");
     headerCell.textContent = columnName;
+    headerRow.appendChild(headerCell);
   });
 
   return table;
@@ -80,39 +82,7 @@ async function performSearch() {
     // Count search results
     document.getElementById("resultCount").textContent = results.length;
 
-    // Display search results
-    const pageLanguage = (window.location.pathname === "/database.html") ? "Italian" : "English";
-    const searchResultsElement = document.getElementById("searchResults");
-    searchResultsElement.innerHTML = ""; // Clear previous results
-
-    if (results.length > 0) {
-      const table = createTableHeader(pageLanguage);
-
-	// Insert data rows
-	results.forEach(result => {
-	  const row = table.insertRow();
-	  Object.values(result).forEach(value => {
-		const cell = row.insertCell();
-
-		// Check if the value contains an anchor tag and set innerHTML accordingly
-		if (typeof value === 'string' && value.includes('<a href=')) {
-		  console.log("HTML Content Detected:", value);  // Debug log
-		  cell.innerHTML = value;
-		} else {
-		  cell.textContent = value;
-		}
-	  });
-	});
-
-
-
-      searchResultsElement.appendChild(table);
-
-      return results; // Return results for CSV download
-    } else {
-      searchResultsElement.textContent = "Nessun risultato per questi termini di ricerca / No results found for the specified search criteria.";
-      return []; // Return empty array if no results for CSV download
-    }
+    return results; // Return results for display and CSV download
   } catch (error) {
     console.error("Errore nella lettura o decodifica del file JSON / Error fetching or parsing JSON data:", error);
     return []; // Return empty array if error for CSV download
@@ -149,7 +119,7 @@ async function performSearchAndDownload() {
 }
 
 // Function to perform the search and display results
-async function performSearchAndDisplay(language) {
+async function performSearchAndDisplay(language, event) {
   try {
     const searchTerm = document.getElementById("searchTerm").value.trim();
     const searchTerm2 = document.getElementById("searchTerm2").value.trim();
@@ -160,7 +130,31 @@ async function performSearchAndDisplay(language) {
       const results = await performSearch();
 
       // Display search results
-      displaySearchResults(results, language);
+      const searchResultsElement = document.getElementById("searchResults");
+      searchResultsElement.innerHTML = ""; // Clear previous results
+
+      if (results.length > 0) {
+        const table = createTableHeader(language);
+
+        // Insert data rows
+        results.forEach(result => {
+          const row = table.insertRow();
+          Object.values(result).forEach(value => {
+            const cell = row.insertCell();
+
+            // Check if the value contains an anchor tag and set innerHTML accordingly
+            if (typeof value === 'string' && value.includes('<a href=')) {
+              cell.innerHTML = value;
+            } else {
+              cell.textContent = value;
+            }
+          });
+        });
+
+        searchResultsElement.appendChild(table);
+      } else {
+        searchResultsElement.textContent = "Nessun risultato per questi termini di ricerca / No results found for the specified search criteria.";
+      }
     }
   } catch (error) {
     console.error("Error occurred while performing search and displaying results:", error);
@@ -169,15 +163,15 @@ async function performSearchAndDisplay(language) {
 }
 
 // Event listeners for search button click and enter key press in search fields
-document.getElementById("searchButton").addEventListener("click", () => performSearchAndDisplay(pageLanguage));
+document.getElementById("searchButton").addEventListener("click", (event) => performSearchAndDisplay(pageLanguage, event));
 document.getElementById("searchTerm").addEventListener("keypress", (event) => {
   if (event.key === "Enter") {
-    performSearchAndDisplay(pageLanguage);
+    performSearchAndDisplay(pageLanguage, event);
   }
 });
 document.getElementById("searchTerm2").addEventListener("keypress", (event) => {
   if (event.key === "Enter") {
-    performSearchAndDisplay(pageLanguage);
+    performSearchAndDisplay(pageLanguage, event);
   }
 });
 
