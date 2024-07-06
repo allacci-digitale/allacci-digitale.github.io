@@ -90,14 +90,16 @@
   <button onclick="resetSearch()">Reset</button>
   <p><b>Results found</b>: <span id="resultCount">0</span></p>
   <button onclick="performSearchAndDownload()">Download results as table (CSV)</button>
-  <div id="searchResults"></div>
+  <div id="searchResults" class="sticky-table-container"></div>
   
 <script src="script.js"></script>
             
             <h2>Downloads</h2>
-            <p>Full database (beta) in <a href="https://allacci-digitale.github.io/data/database.csv">CSV</a> or <a href="https://allacci-digitale.github.io/data/database.json">JSON</a> format.</p>
-            <p>Latest version of the <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">curated transcription (TXT)</a>.</p>
-            <p><a href="https://archive.org/details/drammaturgia00alla">Clean copy of the original</a>, in various formats, from the <i>Internet Archive</i>.</p>
+            <ul>
+            <li><p>Full database (beta) in <a href="https://allacci-digitale.github.io/data/database.csv">CSV</a> or <a href="https://allacci-digitale.github.io/data/database.json">JSON</a> format.</p></li>
+            <li><p>Latest version of the <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">curated transcription (TXT)</a>.</p></li>
+            <li><p><a href="https://archive.org/details/drammaturgia00alla">Clean copy of the original</a>, in various formats, from the <i>Internet Archive</i>.</p></li>
+            </ul>
             </br>
             </br>
         </section>
