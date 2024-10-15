@@ -56,8 +56,8 @@ async function performSearch() {
     const jsonData = await response.json();
 
     // Create regular expressions to match the search terms as whole words
-    const regex = new RegExp(`\\b${searchTerm}\\b`, 'i');
-    const regex2 = new RegExp(`\\b${searchTerm2}\\b`, 'i');
+    const regex = new RegExp(`\\b${searchTerm}`, 'i');
+    const regex2 = new RegExp(`\\b${searchTerm2}`, 'i');
 
     // Filter the data based on search criteria
     const results = jsonData.filter(entry => {
