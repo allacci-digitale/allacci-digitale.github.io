@@ -30,11 +30,12 @@
     <main>
         <section id="database">
             <h1>Database</h1>
-            <p>Search the database extracted from Allacci's catalogue.</p>
-            <p>Warning! Beta version: database and search mask still under construction.</p>
-            <p>Found an error? <a href="https://docs.google.com/forms/d/e/1FAIpQLSckanlI9U281Qx4tMZxcspXSmP4nirspsNjpEcoKLA_x0cyNw/viewform?usp=sf_link" target="_blank">Click here</a> to report it, thank you very much!</p>
+            <p>Search the database extracted from Allacci's catalogue. </p>
+            <p>Asterisk (*) and full stop (.) match any character: a search like <i>R*m*</i> will return <i>Roma</i>, <i>rame</i >, <i>remo</i>, etc. </p>
+            <p>Found an error? <a href="https://docs.google.com/forms/d/e/1FAIpQLSckanlI9U281Qx4tMZxcspXSmP4nirspsNjpEcoKLA_x0cyNw/viewform?usp=sf_link" target="_blank">Click here</a> to report it, thank you!</p>
+            <hr>
   <div>
-    <label for="searchField">Enter a search term for field:</label>
+    <label for="searchField"><b>Enter a search term</b> for field:</label>
 		<select id="searchField">
 		  <option value="voce/entry">Entry</option>
 		  <option value="titolo/title">Title</option>
@@ -88,6 +89,7 @@
   <p></p>
   <button id="searchButton">Search (case-insensitive)</button>
   <button onclick="resetSearch()">Reset</button>
+  <hr>
   <p><b>Results found</b>: <span id="resultCount">0</span></p>
   <button onclick="performSearchAndDownload()">Download results as table (CSV)</button>
   <div id="searchResults" class="sticky-table-container"></div>

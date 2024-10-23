@@ -30,11 +30,12 @@
     <main>
         <section id="base di dati">
             <h1>Base di dati</h1>
-            <p>Cerca nella base di dati estratta dall'Allacci.</p>
-            <p>Attenzione! Versione sperimentale: il database e la maschera di ricerca sono ancora in sviluppo.</p>
-            <p>Trovato un errore? <a href="https://docs.google.com/forms/d/e/1FAIpQLSckanlI9U281Qx4tMZxcspXSmP4nirspsNjpEcoKLA_x0cyNw/viewform?usp=sf_link" target="_blank">Clicca qui</a> per segnalarlo, grazie mille!</p>
+            <p>Cerca nella base di dati estratta dall'Allacci. </p>
+            <p>L'asterisco (*) e il punto fermo (.) corrispondono a qualsiasi carattere: una ricerca del tipo <i>R*m*</i> restituirà <i>roma</i>, <i>rame</i>, <i>remo</i>, etc. </p>
+            <p>Trovato un errore? <a href="https://docs.google.com/forms/d/e/1FAIpQLSckanlI9U281Qx4tMZxcspXSmP4nirspsNjpEcoKLA_x0cyNw/viewform?usp=sf_link" target="_blank">Clicca qui</a> per segnalarlo, grazie!</p>
+            <hr>
             <div>
-                <label for="searchField">Inserisci un termine di ricerca per il campo:</label>
+                <label for="searchField"><b>Inserisci un termine di ricerca</b> per il campo:</label>
                 <select id="searchField">
                     <option value="voce/entry">Voce</option>
                     <option value="titolo/title">Titolo</option>
@@ -88,6 +89,7 @@
             <p></p>
             <button id="searchButton">Cerca (insensibile alle maiuscole)</button>
             <button onclick="resetSearch()">Cancella tutto</button>
+            <hr>
             <p><b>Risultati trovati</b>: <span id="resultCount">0</span></p>
             <button onclick="performSearchAndDownload()">Scarica i risultati in formato tabella (CSV)</button>
             <div id="searchResults" class="sticky-table-container"></div>
