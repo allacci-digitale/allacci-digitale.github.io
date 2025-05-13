@@ -1,11 +1,20 @@
-/* styles.css */
+/* styles.css - Enhanced Version */
+
+/* 1. Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Aboreto&display=swap');
+
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
+    line-height: 1.6;
+    background-color: #fafafa;
+    color: #333;
 }
 
+/* 2. Header and Navigation */
 header {
     background-color: #800000;
     color: white;
@@ -13,7 +22,17 @@ header {
     position: sticky;
     top: 0;
     z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.site-title {
+    font-family: 'Aboreto', cursive;
+    font-size: 1.8em;
+    font-weight: bold;
+    margin-right: 20px;
+    color: white;
+}
+
 
 nav ul {
     list-style-type: none;
@@ -23,115 +42,205 @@ nav ul {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
+    gap: 5px;
 }
 
 nav ul li {
     display: inline;
-    margin-right: 10px;
 }
 
 nav a {
     text-decoration: none;
     color: white;
+    padding: 0.5em;
+    transition: all 0.2s ease-in-out;
 }
 
-.button {
-    margin-left: auto;
-    order: 1;
+nav a:hover,
+nav a:focus {
+    color: #ffcccb;
+    text-decoration: underline;
 }
 
-/* Style for GitHub icon */
+/* GitHub icon */
 .nav-github {
-    font-size: 1.5em; /* Adjust size as needed */
-    margin-left: 10px; /* Adjust margin as needed */
+    font-size: 1.5em;
+    margin-left: 10px;
 }
 
+/* Button styling */
+.button {
+    background-color: #a52a2a; /* lighter shade of maroon */
+    color: white;
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.button:hover,
+.button:focus {
+    background-color: #c04040;
+}
+
+.home-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.home-text {
+    flex: 1 1 60%;
+    min-width: 300px;
+}
+
+.home-image {
+    flex: 0 0 250px;
+}
+
+.home-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
+/* Responsive layout: stack on smaller screens */
+@media (max-width: 768px) {
+    .home-container {
+        flex-direction: column;
+    }
+
+    .home-image {
+        margin-top: 20px;
+    }
+}
+
+
+/* 3. Main Content */
 main {
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+/* 4. Footer */
 footer {
     background-color: #800000;
     color: white;
     text-align: center;
-    padding: 0em;
+    padding: 1em;
     position: fixed;
     bottom: 0;
     width: 100%;
+    font-size: 0.9em;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 }
 
 footer a {
-    color: inherit; /* This ensures that hyperlinks inherit the color property from the parent (white in this case) */
+    color: inherit;
 }
 
-/* Adjust table size to fit within page boundaries */
+/* Prevent footer overlap */
+main {
+    padding-bottom: 80px;
+}
+
+/* 5. Table Styles */
 table {
     width: 100%;
-    max-width: 100%; /* Limit maximum width for the table */
+    max-width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-th:nth-child(1),
-td:nth-child(1) {
-    font-size: smaller;
-}
-
-th,
-td {
-    border: 1px solid black;
-    padding: 8px;
+th, td {
+    border-bottom: 1px solid #ddd;
+    padding: 12px;
     text-align: left;
 }
 
 th {
-    background-color: #f2f2f2;
+    background-color: #f9f9f9;
+    font-weight: 600;
 }
 
+th:nth-child(1),
+td:nth-child(1) {
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* Sticky Table Enhancements */
 .sticky-table-container {
-    max-height: 400px; /* Adjust height as needed */
-    overflow-y: auto; /* Enable vertical scrolling if needed */
-    overflow-x: auto; /* Enable horizontal scrolling */
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: auto;
     position: relative;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
 }
 
 .sticky-table-container table {
     width: 100%;
-    border-collapse: collapse;
 }
 
 .sticky-table-container th,
 .sticky-table-container td {
-    padding: 8px;
-    text-align: left;
-    border: 1px solid black;
-    white-space: normal; /* Enable text wrapping */
-    word-wrap: break-word; /* Ensure long words break onto the next line */
+    white-space: normal;
+    word-wrap: break-word;
 }
 
 .sticky-table-container th:nth-child(2),
 .sticky-table-container td:nth-child(2) {
     position: sticky;
+    left: 0;
+    background-color: #fff;
+    z-index: 2;
     font-style: italic;
-    left: 0; /* Stick to the left */
-    background-color: white; /* Header background color */
-    z-index: 2; /* Ensure it overlaps other content */
 }
 
 .sticky-table-container thead th {
     position: sticky;
-    font-style: normal;
-    top: 0; /* Stick to the top */
+    top: 0;
     background: #fff;
     z-index: 1;
-    /* box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4); /* Optional: add shadow for better visibility */
 }
 
 .sticky-table-container thead th:nth-child(2) {
-    left: 0; /* Stick to the left */
-    z-index: 3; /* Ensure it overlaps other content */
+    left: 0;
+    z-index: 3;
 }
 
+/* Search Results Spacing */
 #searchResults {
-    margin-top: 20px; /* Adjust the value as needed to increase or decrease the space */
+    margin-top: 20px;
+}
+
+/* 6. Responsive Design */
+@media (max-width: 600px) {
+    nav ul {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .button {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    table, th, td {
+        font-size: 14px;
+    }
+
+    header, footer {
+        text-align: center;
+    }
 }
