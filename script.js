@@ -33,6 +33,42 @@ function createTableHeader(language) {
   return table;
 }
 
+// ========== Utility: Map UI Field Labels to JSON Keys ==========
+function mapFieldName(uiLabel) {
+  const mapping = {
+    "Luogo di prima pubblicazione": "luogo di pubblicazione/city",
+    "Luogo di prima rappresentazione": "luogo di rappresentazione/location",
+    "Place of publication": "luogo di pubblicazione/city",
+    "Performance venue": "luogo di rappresentazione/location",
+    "Voce": "voce/entry",
+    "Titolo": "titolo/title",
+    "Sottotitolo": "sottotitolo/subtitle",
+    "Autore": "autore/author",
+    "Genere": "genere/genre",
+    "Metro": "metro/mode",
+    "Editore": "editore/publisher",
+    "Anno": "anno/year",
+    "Formato": "formato/format",
+    "Compositore": "compositore/composer",
+    "Traduzione?": "traduzione/translation",
+    "Libretto?": "libretto",
+    "Entry": "voce/entry",
+    "Title": "titolo/title",
+    "Subtitle": "sottotitolo/subtitle",
+    "Author": "autore/author",
+    "Genre": "genere/genre",
+    "Mode": "metro/mode",
+    "Publisher": "editore/publisher",
+    "Year": "anno/year",
+    "Format": "formato/format",
+    "Composer": "compositore/composer",
+    "Translation?": "traduzione/translation",
+    "Libretto?": "libretto"
+  };
+
+  return mapping[uiLabel] || uiLabel;
+}
+
 // ========== City Name Normalization ==========
 let cityMap = {};
 
@@ -52,14 +88,13 @@ function normalizeCityName(inputName) {
 
 function normalizeCityField(field, value) {
   const relevantFields = [
-    "Luogo di prima pubblicazione",
-    "Luogo di prima rappresentazione",
-    "Place of publication",
-    "Performance venue"
+    "luogo di pubblicazione/city",
+    "luogo di rappresentazione/location"
   ];
   return relevantFields.includes(field) ? normalizeCityName(value) : value;
 }
 
+// ========== Utility: Strip HTML anchor tags ==========
 function stripHtml(html) {
   if (!html) return "";
   const tmp = document.createElement("div");
@@ -67,11 +102,13 @@ function stripHtml(html) {
   return tmp.textContent || tmp.innerText || "";
 }
 
-
 // ========== Main Search Logic ==========
 async function performSearch() {
-  const searchField = document.getElementById("searchField").value;
-  const searchField2 = document.getElementById("searchField2").value;
+  const searchFieldLabel = document.getElementById("searchField").value;
+  const searchField2Label = document.getElementById("searchField2").value;
+
+  const searchField = mapFieldName(searchFieldLabel);
+  const searchField2 = mapFieldName(searchField2Label);
 
   const rawSearchTerm = document.getElementById("searchTerm").value.trim();
   const rawSearchTerm2 = document.getElementById("searchTerm2").value.trim();
@@ -79,8 +116,8 @@ async function performSearch() {
   const normalizedSearchTerm = normalizeCityField(searchField, rawSearchTerm);
   const normalizedSearchTerm2 = normalizeCityField(searchField2, rawSearchTerm2);
 
-  const regex = new RegExp(`\\b${normalizedSearchTerm.toLowerCase()}`, 'i');
-  const regex2 = new RegExp(`\\b${normalizedSearchTerm2.toLowerCase()}`, 'i');
+  const regex = new RegExp(normalizedSearchTerm, 'i');
+  const regex2 = new RegExp(normalizedSearchTerm2, 'i');
 
   const librettoChecked = document.getElementById("librettoCheckbox").checked;
   const translationChecked = document.getElementById("translationCheckbox").checked;
@@ -93,8 +130,8 @@ async function performSearch() {
     const jsonData = await response.json();
 
     const results = jsonData.filter(entry => {
-      const fieldValue = stripHtml(entry[searchField]);
-      const fieldValue2 = stripHtml(entry[searchField2]);
+      const fieldValue = stripHtml(entry[searchField] || "");
+      const fieldValue2 = stripHtml(entry[searchField2] || "");
       const librettoValue = entry['libretto'] === 'True';
       const translationValue = entry['traduzione/translation'] === 'True';
 
@@ -153,7 +190,7 @@ async function performSearchAndDisplay(language, event) {
   }
 }
 
-// ========== CSV Download Trigger ==========
+// ========== CSV Download ==========
 async function performSearchAndDownload() {
   try {
     const results = await performSearch();
@@ -169,7 +206,7 @@ async function performSearchAndDownload() {
   }
 }
 
-// ========== Reset Form ==========
+// ========== Reset ==========
 function resetSearch() {
   document.getElementById("searchTerm").value = "";
   document.getElementById("searchResults").innerHTML = "";
@@ -181,9 +218,8 @@ function resetSearch() {
 const pageLanguage = (window.location.pathname === "/database.html") ? "Italian" : "English";
 
 async function initialize() {
-  await loadCityMap(); // ensure cityMap is ready
+  await loadCityMap();
 
-  // Event listeners
   document.getElementById("searchButton").addEventListener("click", (event) => performSearchAndDisplay(pageLanguage, event));
   document.getElementById("searchTerm").addEventListener("keypress", (event) => {
     if (event.key === "Enter") performSearchAndDisplay(pageLanguage, event);
