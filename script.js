@@ -60,6 +60,14 @@ function normalizeCityField(field, value) {
   return relevantFields.includes(field) ? normalizeCityName(value) : value;
 }
 
+function stripHtml(html) {
+  if (!html) return "";
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+}
+
+
 // ========== Main Search Logic ==========
 async function performSearch() {
   const searchField = document.getElementById("searchField").value;
@@ -85,8 +93,8 @@ async function performSearch() {
     const jsonData = await response.json();
 
     const results = jsonData.filter(entry => {
-      const fieldValue = entry[searchField];
-      const fieldValue2 = entry[searchField2];
+      const fieldValue = stripHtml(entry[searchField]);
+      const fieldValue2 = stripHtml(entry[searchField2]);
       const librettoValue = entry['libretto'] === 'True';
       const translationValue = entry['traduzione/translation'] === 'True';
 
