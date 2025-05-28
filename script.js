@@ -34,43 +34,70 @@ function createTableHeader(language) {
   return table;
 }
 
+let cityMap = {};
+
+async function loadCityMap() {
+  try {
+    const response = await fetch("correspondences.json");
+    cityMap = await response.json();
+  } catch (error) {
+    console.error("Error loading city correspondences:", error);
+  }
+}
+
+function normalizeCityName(inputName) {
+  // Capitalize the first letter for matching
+  const formatted = inputName.charAt(0).toUpperCase() + inputName.slice(1).toLowerCase();
+  return cityMap[formatted] || inputName; // fallback to original if not found
+}
+
+function normalizeCityField(field, value) {
+  const relevantFields = [
+    "Luogo di prima pubblicazione",
+    "Luogo di prima rappresentazione",
+    "Place of publication",
+    "Performance venue"
+  ];
+  return relevantFields.includes(field) ? normalizeCityName(value) : value;
+}
+
+
 // Function to perform the search
 async function performSearch() {
   const searchField = document.getElementById("searchField").value;
-  const searchTerm = document.getElementById("searchTerm").value.toLowerCase();
-
   const searchField2 = document.getElementById("searchField2").value;
-  const searchTerm2 = document.getElementById("searchTerm2").value.toLowerCase();
+
+  // Raw user input
+  let rawSearchTerm = document.getElementById("searchTerm").value.trim();
+  let rawSearchTerm2 = document.getElementById("searchTerm2").value.trim();
+
+  // Normalize city names if needed
+  const normalizedSearchTerm = normalizeCityField(searchField, rawSearchTerm);
+  const normalizedSearchTerm2 = normalizeCityField(searchField2, rawSearchTerm2);
+
+  // Create regex for matching (case-insensitive)
+  const regex = new RegExp(`\\b${normalizedSearchTerm.toLowerCase()}`, 'i');
+  const regex2 = new RegExp(`\\b${normalizedSearchTerm2.toLowerCase()}`, 'i');
 
   const librettoChecked = document.getElementById("librettoCheckbox").checked;
   const translationChecked = document.getElementById("translationCheckbox").checked;
 
-  // Get the year range
   const minYear = parseInt(document.getElementById("minYear").value);
   const maxYear = parseInt(document.getElementById("maxYear").value);
 
-
   try {
-    // Fetch the JSON data
     const response = await fetch(jsonUrl);
     const jsonData = await response.json();
 
-    // Create regular expressions to match the search terms as whole words
-    const regex = new RegExp(`\\b${searchTerm}`, 'i');
-    const regex2 = new RegExp(`\\b${searchTerm2}`, 'i');
-
-    // Filter the data based on search criteria
     const results = jsonData.filter(entry => {
       const fieldValue = entry[searchField];
       const fieldValue2 = entry[searchField2];
       const librettoValue = entry['libretto'] === 'True';
       const translationValue = entry['traduzione/translation'] === 'True';
 
-      // Check if both search terms are present in their respective fields
       const term1Match = regex.test(fieldValue);
       const term2Match = regex2.test(fieldValue2);
 
-      // Check if the year falls within the specified range
       const year = parseInt(entry['anno/year']);
       const yearInRange = (!isNaN(minYear) && !isNaN(maxYear)) ? (year >= minYear && year <= maxYear) : true;
 
@@ -79,15 +106,15 @@ async function performSearch() {
         (!translationChecked || translationValue);
     });
 
-    // Count search results
     document.getElementById("resultCount").textContent = results.length;
+    return results;
 
-    return results; // Return results for display and CSV download
   } catch (error) {
     console.error("Errore nella lettura o decodifica del file JSON / Error fetching or parsing JSON data:", error);
-    return []; // Return empty array if error for CSV download
+    return [];
   }
 }
+
 
 // Function to reset the search
 function resetSearch() {
@@ -161,6 +188,8 @@ async function performSearchAndDisplay(language, event) {
     alert("An error occurred while performing the search and displaying results. Please try again.");
   }
 }
+
+loadCityMap();
 
 // Event listeners for search button click and enter key press in search fields
 document.getElementById("searchButton").addEventListener("click", (event) => performSearchAndDisplay(pageLanguage, event));
