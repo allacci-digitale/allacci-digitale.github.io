@@ -8,8 +8,8 @@
     "text": "Luca Giovannini"
   },
   "text": {
-    "more": "A network of author-publisher collaborations extracted from Leone Allacci\u0027s \"Drammaturgia\". \nFor more details, see https://allacci-digitale.github.io.",
-    "intro": "A network of author-publisher collaborations extracted from Leone Allacci\u0027s \"Drammaturgia\". \nFor more details, see https://allacci-digitale.github.io.",
+    "more": "A network of author-publisher connections extracted from Leone Allacci\u0027s \"Drammaturgia\". \nFor more details, see https://allacci-digitale.github.io.",
+    "intro": "A network of author-publisher connections extracted from Leone Allacci\u0027s \"Drammaturgia\". \nFor more details, see https://allacci-digitale.github.io.",
     "title": "Allacci Network"
   },
   "legend": {
@@ -40,10 +40,10 @@
       "defaultLabelSize": 14
     },
     "graphProperties": {
-      "maxEdgeSize": 0.5,
-      "minEdgeSize": 0.2,
-      "minNodeSize": 1,
-      "maxNodeSize": 7
+      "maxEdgeSize": 5,
+      "minEdgeSize": 1,
+      "minNodeSize": 2,
+      "maxNodeSize": 10
     },
     "mouseProperties": {
       "maxRatio": 20,
