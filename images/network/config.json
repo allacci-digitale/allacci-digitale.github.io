@@ -13,7 +13,7 @@
     "title": "Allacci Network"
   },
   "legend": {
-    "edgeLabel": "Collaboration",
+    "edgeLabel": "Connection",
     "colorLabel": "Red: author. Green: publisher.",
     "nodeLabel": "Individual"
   },
