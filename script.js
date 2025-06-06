@@ -170,14 +170,24 @@ async function performSearchAndDisplay(language, event) {
         const table = createTableHeader(language);
         results.forEach(result => {
           const row = table.insertRow();
-          Object.values(result).forEach(value => {
-            const cell = row.insertCell();
-            if (typeof value === 'string' && value.includes('<a href=')) {
-              cell.innerHTML = value;
-            } else {
-              cell.textContent = value;
-            }
-          });
+          Object.entries(result).forEach(([key, value]) => {
+			  const cell = row.insertCell();
+
+			  if (key === "libretto" || key === "traduzione/translation") {
+				if (value === "True") {
+				  cell.textContent = "✅";
+				} else if (value === "False") {
+				  cell.textContent = "❌";
+				} else {
+				  cell.textContent = value;
+				}
+			  } else if (typeof value === 'string' && value.includes('<a href=')) {
+				cell.innerHTML = value;
+			  } else {
+				cell.textContent = value;
+			  }
+			});
+
         });
         searchResultsElement.appendChild(table);
       } else {
