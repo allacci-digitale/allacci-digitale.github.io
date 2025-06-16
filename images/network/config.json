@@ -42,10 +42,10 @@
       "defaultEdgeColor": "#aaaaaa88"      
     },
     "graphProperties": {
-      "maxEdgeSize": 2,
-      "minEdgeSize": 5,
+      "maxEdgeSize": 1,
+      "minEdgeSize": 3,
       "minNodeSize": 1,
-      "maxNodeSize": 7
+      "maxNodeSize": 20
     },
     "mouseProperties": {
       "maxRatio": 20,
