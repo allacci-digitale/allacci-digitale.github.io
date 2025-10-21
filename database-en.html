@@ -1,31 +1,447 @@
-<!-- database.html -->
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Database - Allacci Digitale</title>
-</head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Aboreto&display=swap');
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafafa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Header and Navigation - Original Style */
+        header {
+            background-color: #800000;
+            color: white;
+            padding: 1em;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .site-title {
+            font-family: 'Aboreto', cursive;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-right: 20px;
+            color: white;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        nav ul li {
+            display: inline;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: white;
+            padding: 0.5em;
+            transition: all 0.2s ease-in-out;
+        }
+
+        nav a:hover,
+        nav a:focus {
+            color: #ffcccb;
+            text-decoration: underline;
+        }
+
+        .nav-github {
+            font-size: 1.5em;
+            margin-left: 10px;
+        }
+
+        .button {
+            background-color: #a52a2a;
+            color: white;
+            border: none;
+            padding: 0.5em 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .button:hover,
+        .button:focus {
+            background-color: #c04040;
+        }
+
+        /* Main Content - Full Width */
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding-bottom: 80px;
+        }
+
+        h1 {
+            color: #800000;
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: #800000;
+            font-size: 1.5em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: #800000;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #ddd;
+            margin: 20px 0;
+        }
+
+        /* Downloads section styling */
+        .downloads-section ul {
+            list-style-position: outside;
+            padding-left: 0;
+            margin-left: 20px;
+        }
+
+        .downloads-section li {
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .downloads-section li:last-child {
+            margin-bottom: 0;
+        }
+
+        .downloads-section li p {
+            margin: 0;
+        }
+
+        /* Enhanced Search Box */
+        .search-box {
+            background: #fafafa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+
+        .search-box:hover {
+            box-shadow: 0 4px 15px rgba(128,0,0,0.1);
+            border-color: #a52a2a;
+        }
+
+        .search-group {
+            margin-bottom: 20px;
+        }
+
+        .search-group:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .search-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #800000;
+            font-size: 0.95em;
+        }
+
+        .search-group label b {
+            color: #600000;
+        }
+
+        .search-group label span {
+            color: #999;
+            font-weight: 400;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select {
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #800000;
+            box-shadow: 0 0 0 3px rgba(128,0,0,0.1);
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #800000;
+            box-shadow: 0 0 0 3px rgba(128,0,0,0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            padding: 10px 0;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #800000;
+        }
+
+        /* Enhanced Buttons */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #800000 0%, #600000 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #a52a2a 0%, #800000 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(128,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #800000;
+            border: 2px solid #800000;
+        }
+
+        .btn-secondary:hover {
+            background: #800000;
+            color: white;
+        }
+
+        /* Results Section */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px 0;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .result-count {
+            font-size: 1.1em;
+            color: #800000;
+            font-weight: 600;
+        }
+
+        /* Table styles */
+        .sticky-table-container {
+            max-height: 600px;
+            overflow-y: auto;
+            overflow-x: auto;
+            position: relative;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            margin: 20px 0;
+        }
+
+        .sticky-table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .sticky-table-container th,
+        .sticky-table-container td {
+            white-space: normal;
+            word-wrap: break-word;
+            border-bottom: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .sticky-table-container th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sticky-table-container th:nth-child(1),
+        .sticky-table-container td:nth-child(1) {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .sticky-table-container th:nth-child(2),
+        .sticky-table-container td:nth-child(2) {
+            position: sticky;
+            left: 0;
+            background-color: #fff;
+            z-index: 2;
+            font-style: italic;
+        }
+
+        .sticky-table-container thead th {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 1;
+        }
+
+        .sticky-table-container thead th:nth-child(2) {
+            left: 0;
+            z-index: 3;
+        }
+
+        .sticky-table-container tr:hover {
+            background-color: #fff5f5;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #800000;
+            color: white;
+            text-align: center;
+            padding: 1em;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            font-size: 0.9em;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        footer a {
+            color: inherit;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .search-row {
+                flex-direction: column;
+            }
+
+            select {
+                width: 100%;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            nav ul {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .results-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            table, th, td {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
 <body>
     <header>
         <nav>
             <ul>
                 <li class="site-title">Allacci Digitale</li>
-				<li><a href="index-en.html">Home</a></li>
+                <li><a href="index-en.html">Home</a></li>
                 <li><a href="bio-en.html">Authors</a></li>
                 <li><a href="work-en.html">Work</a></li>
                 <li><a href="stats-en.html">Stats</a></li>
                 <li><a href="database-en.html">Database</a></li>
                 <li><a href="credits-en.html">Contact</a></li>
                 <li class="button">
-					<a href="database.html">🇮🇹</a>
-					<a href="https://github.com/allacci-digitale/allacci-digitale.github.io">
-					<i class="fab fa-github nav-github"></i></a>
-				</li>
+                    <a href="database.html">🇮🇹</a>
+                    <a href="https://github.com/allacci-digitale/allacci-digitale.github.io">
+                        <i class="fab fa-github nav-github"></i>
+                    </a>
+                </li>
             </ul>
         </nav>
     </header>
@@ -33,80 +449,349 @@
     <main>
         <section id="database">
             <h1>Database</h1>
-            <p>Search the database extracted from Allacci's catalogue. </p>
-            <p>Asterisk (*) and full stop (.) match any character: a search like <i>R*m*</i> will return <i>Roma</i>, <i>rame</i >, <i>remo</i>, etc. </p>
+            <p>Search the database extracted from Allacci's catalogue.</p>
+            <p>Asterisk (*) and full stop (.) match any character: a search like <i>R*m*</i> will return <i>Roma</i>, <i>rame</i>, <i>remo</i>, etc.</p>
             <p>Found an error? <a href="https://docs.google.com/forms/d/e/1FAIpQLSckanlI9U281Qx4tMZxcspXSmP4nirspsNjpEcoKLA_x0cyNw/viewform?usp=sf_link" target="_blank">Click here</a> to report it, thank you!</p>
             <hr>
-  <div>
-    <label for="searchField"><b>Enter a search term</b> for field:</label>
-		<select id="searchField">
-		  <option value="voce/entry">Entry</option>
-		  <option value="titolo/title">Title</option>
-		  <option value="sottotitolo/subtitle">Subtitle</option>
-		  <option value="autore/author">Author</option>
-		  <option value="genere/genre">Genre</option>
-		  <option value="metro/mode">Mode</option>
-		  <option value="luogo di pubblicazione/city">Place of publication</option>
-		  <option value="luogo di rappresentazione/location">Performance venue</option>
-		  <option value="editore/publisher">Publisher</option>
-		  <option value="anno/year">Year</option>
-		  <option value="formato/format">Format</option>
-		  <option value="compositore/composer">Composer</option>
-		  <!-- <option value="libretto/libretto">Libretto?</option>
-		  <option value="traduzione/translation">Traduzione?</option> -->
-		</select>
-		<input type="text" id="searchTerm" placeholder="Isabella Andreini">
-		</div>
-		<div>
-		<label for="searchField2"><span style="font-size: smaller;">[optional]</span> Enter another search term for field:</label>
-		<select id="searchField2">
-		  <option value="voce/entry">Entry</option>
-		  <option value="titolo/title">Title</option>
-		  <option value="sottotitolo/subtitle">Subtitle</option>
-		  <option value="autore/author">Author</option>
-		  <option value="genere/genre">Genre</option>
-		  <option value="metro/mode">mode</option>
-		  <option value="luogo di pubblicazione/city">Place of publication</option>
-		  <option value="luogo di rappresentazione/location">Performance venue</option>
-		  <option value="editore/publisher">Publisher</option>
-		  <option value="anno/year">Year</option>
-		  <option value="formato/format">Format</option>
-		  <option value="compositore/composer">Composer</option>
-		  <!-- <option value="libretto/libretto">Libretto?</option>
-		  <option value="traduzione/translation">Traduzione?</option> -->
-		</select>
-    <input type="text" id="searchTerm2" placeholder="commedia">
-  </div>
-  <div>
-    <label for="minYear"><span style="font-size: smaller;">[optional]</span> Select a timeframe. Start year:</label>
-    <input type="number" id="minYear" name="minYear" placeholder="1638">
-    <label for="maxYear">End year:</label>
-    <input type="number" id="maxYear" name="maxYear" placeholder="1640">
-  </div>
-  <div>
-    <input type="checkbox" id="translationCheckbox">
-    <label for="translationCheckbox">Translated works only</label>
-    <input type="checkbox" id="librettoCheckbox">
-    <label for="librettoCheckbox">Libretti only</label>
-  </div>
-  <p></p>
-  <button id="searchButton">Search (case-insensitive)</button>
-  <button onclick="resetSearch()">Reset</button>
-  <hr>
-  <p><b>Results found</b>: <span id="resultCount">0</span></p>
-  <button onclick="performSearchAndDownload()">Download results as table (CSV)</button>
-  <div id="searchResults" class="sticky-table-container"></div>
-            <h2>Downloads</h2>
-            <ul>
-            <li><p>Full database (beta) in <a href="https://allacci-digitale.github.io/data/database.csv">CSV</a> or <a href="https://allacci-digitale.github.io/data/database.json">JSON</a> format.</p></li>
-            <li><p>Latest version of the <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">curated transcription (TXT)</a>.</p></li>
-            <li><p><a href="https://archive.org/details/drammaturgia00alla">Clean copy of the original</a>, in various formats, from the <i>Internet Archive</i>.</p></li>
-            </ul>
-            </br>
-            </br>
+
+            <div class="search-box">
+                <div class="search-group">
+                    <label><b>Enter a search term</b> for field:</label>
+                    <div class="search-row">
+                        <select id="searchField">
+                            <option value="voce/entry">Entry</option>
+                            <option value="titolo/title">Title</option>
+                            <option value="sottotitolo/subtitle">Subtitle</option>
+                            <option value="autore/author">Author</option>
+                            <option value="genere/genre">Genre</option>
+                            <option value="metro/mode">Mode</option>
+                            <option value="luogo di pubblicazione/city">Place of publication</option>
+                            <option value="luogo di rappresentazione/location">Performance venue</option>
+                            <option value="editore/publisher">Publisher</option>
+                            <option value="anno/year">Year</option>
+                            <option value="formato/format">Format</option>
+                            <option value="compositore/composer">Composer</option>
+                        </select>
+                        <input type="text" id="searchTerm" placeholder="Isabella Andreini">
+                    </div>
+                </div>
+
+                <div class="search-group">
+                    <label><span style="font-size: smaller;">[optional]</span> Enter another search term for field:</label>
+                    <div class="search-row">
+                        <select id="searchField2">
+                            <option value="voce/entry">Entry</option>
+                            <option value="titolo/title">Title</option>
+                            <option value="sottotitolo/subtitle">Subtitle</option>
+                            <option value="autore/author">Author</option>
+                            <option value="genere/genre">Genre</option>
+                            <option value="metro/mode">Mode</option>
+                            <option value="luogo di pubblicazione/city">Place of publication</option>
+                            <option value="luogo di rappresentazione/location">Performance venue</option>
+                            <option value="editore/publisher">Publisher</option>
+                            <option value="anno/year">Year</option>
+                            <option value="formato/format">Format</option>
+                            <option value="compositore/composer">Composer</option>
+                        </select>
+                        <input type="text" id="searchTerm2" placeholder="commedia">
+                    </div>
+                </div>
+
+                <div class="search-group">
+                    <label><span style="font-size: smaller;">[optional]</span> Select a timeframe:</label>
+                    <div class="search-row">
+                        <label for="minYear" style="color: #666; font-weight: normal;">Start year:</label>
+                        <input type="number" id="minYear" name="minYear" placeholder="1638">
+                        <label for="maxYear" style="color: #666; font-weight: normal;">End year:</label>
+                        <input type="number" id="maxYear" name="maxYear" placeholder="1640">
+                    </div>
+                </div>
+
+                <div class="search-group">
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="translationCheckbox">
+                            Translated works only
+                        </label>
+                        <label>
+                            <input type="checkbox" id="librettoCheckbox">
+                            Libretti only
+                        </label>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="searchButton">Search (case-insensitive)</button>
+                    <button class="btn btn-secondary" onclick="resetSearch()">Reset</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="results-header">
+                <p class="result-count"><b>Results found</b>: <span id="resultCount">0</span></p>
+                <button class="btn btn-primary" onclick="performSearchAndDownload()">Download results as table (CSV)</button>
+            </div>
+
+            <div id="searchResults" class="sticky-table-container"></div>
+
+            <div class="downloads-section">
+                <h2>Downloads</h2>
+                <ul>
+                    <li><p>Full database (beta) in <a href="https://allacci-digitale.github.io/data/database.csv">CSV</a> or <a href="https://allacci-digitale.github.io/data/database.json">JSON</a> format.</p></li>
+                    <li><p>Latest version of the <a href="https://allacci-digitale.github.io/data/cleaned-transcription.txt">curated transcription (TXT)</a>.</p></li>
+                    <li><p><a href="https://archive.org/details/drammaturgia00alla">Clean copy of the original</a>, in various formats, from the <i>Internet Archive</i>.</p></li>
+                </ul>
+            </div>
         </section>
     </main>
-    <script src="script.js"></script>
-</body>
 
+    <script>
+        // URL to your JSON database
+        const jsonUrl = "https://allacci-digitale.github.io/data/database.json";
+
+        // City name normalization
+        let cityMap = {};
+
+        async function loadCityMap() {
+            try {
+                const response = await fetch("correspondences.json");
+                cityMap = await response.json();
+            } catch (error) {
+                console.error("Error loading city correspondences:", error);
+            }
+        }
+
+        function normalizeCityName(inputName) {
+            const formatted = inputName.charAt(0).toUpperCase() + inputName.slice(1).toLowerCase();
+            return cityMap[formatted] || inputName;
+        }
+
+        function normalizeCityField(field, value) {
+            const relevantFields = [
+                "luogo di pubblicazione/city",
+                "luogo di rappresentazione/location"
+            ];
+            return relevantFields.includes(field) ? normalizeCityName(value) : value;
+        }
+
+        // Utility: Strip HTML anchor tags
+        function stripHtml(html) {
+            if (!html) return "";
+            const tmp = document.createElement("div");
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || "";
+        }
+
+        // Utility: Map UI Field Labels to JSON Keys
+        function mapFieldName(uiLabel) {
+            const mapping = {
+                "Luogo di prima pubblicazione": "luogo di pubblicazione/city",
+                "Luogo di prima rappresentazione": "luogo di rappresentazione/location",
+                "Place of publication": "luogo di pubblicazione/city",
+                "Performance venue": "luogo di rappresentazione/location",
+                "Voce": "voce/entry",
+                "Titolo": "titolo/title",
+                "Sottotitolo": "sottotitolo/subtitle",
+                "Autore": "autore/author",
+                "Genere": "genere/genre",
+                "Metro": "metro/mode",
+                "Editore": "editore/publisher",
+                "Anno": "anno/year",
+                "Formato": "formato/format",
+                "Compositore": "compositore/composer",
+                "Traduzione?": "traduzione/translation",
+                "Libretto?": "libretto",
+                "Entry": "voce/entry",
+                "Title": "titolo/title",
+                "Subtitle": "sottotitolo/subtitle",
+                "Author": "autore/author",
+                "Genre": "genere/genre",
+                "Mode": "metro/mode",
+                "Publisher": "editore/publisher",
+                "Year": "anno/year",
+                "Format": "formato/format",
+                "Composer": "compositore/composer",
+                "Translation?": "traduzione/translation",
+                "Libretto?": "libretto"
+            };
+
+            return mapping[uiLabel] || uiLabel;
+        }
+
+        // Create table header
+        function createTableHeader(language) {
+            const table = document.createElement("table");
+            table.classList.add("sticky-table");
+
+            const headerRow = table.createTHead().insertRow();
+
+            const columnNames = {
+                "Italian": ["Voce", "Titolo", "Sottotitolo", "Autore", "Genere", "Metro", "Luogo di prima pubblicazione", "Luogo di prima rappresentazione", "Editore", "Anno", "Formato", "Libretto?", "Compositore", "Traduzione?"],
+                "English": ["Entry", "Title", "Subtitle", "Author", "Genre", "Mode", "Place of publication", "Performance venue", "Publisher", "Year", "Format", "Libretto?", "Composer", "Translation?"]
+            };
+
+            columnNames[language].forEach(columnName => {
+                const headerCell = document.createElement("th");
+                headerCell.textContent = columnName;
+                headerRow.appendChild(headerCell);
+            });
+
+            return table;
+        }
+
+        // Main Search Logic
+        async function performSearch() {
+            const searchFieldLabel = document.getElementById("searchField").value;
+            const searchField2Label = document.getElementById("searchField2").value;
+
+            const searchField = mapFieldName(searchFieldLabel);
+            const searchField2 = mapFieldName(searchField2Label);
+
+            const rawSearchTerm = document.getElementById("searchTerm").value.trim();
+            const rawSearchTerm2 = document.getElementById("searchTerm2").value.trim();
+
+            const normalizedSearchTerm = normalizeCityField(searchField, rawSearchTerm);
+            const normalizedSearchTerm2 = normalizeCityField(searchField2, rawSearchTerm2);
+
+            const regex = new RegExp(normalizedSearchTerm, 'i');
+            const regex2 = new RegExp(normalizedSearchTerm2, 'i');
+
+            const librettoChecked = document.getElementById("librettoCheckbox").checked;
+            const translationChecked = document.getElementById("translationCheckbox").checked;
+
+            const minYear = parseInt(document.getElementById("minYear").value);
+            const maxYear = parseInt(document.getElementById("maxYear").value);
+
+            try {
+                const response = await fetch(jsonUrl);
+                const jsonData = await response.json();
+
+                const results = jsonData.filter(entry => {
+                    const fieldValue = stripHtml(entry[searchField] || "");
+                    const fieldValue2 = stripHtml(entry[searchField2] || "");
+                    const librettoValue = entry['libretto'] === 'True';
+                    const translationValue = entry['traduzione/translation'] === 'True';
+
+                    const term1Match = regex.test(fieldValue);
+                    const term2Match = regex2.test(fieldValue2);
+
+                    const year = parseInt(entry['anno/year']);
+                    const yearInRange = (!isNaN(minYear) && !isNaN(maxYear)) ? (year >= minYear && year <= maxYear) : true;
+
+                    return term1Match && term2Match && yearInRange &&
+                        (!librettoChecked || librettoValue) &&
+                        (!translationChecked || translationValue);
+                });
+
+                document.getElementById("resultCount").textContent = results.length;
+                return results;
+
+            } catch (error) {
+                console.error("Error fetching or parsing JSON data:", error);
+                return [];
+            }
+        }
+
+        // Display Results
+        async function performSearchAndDisplay(language, event) {
+            try {
+                const searchTerm = document.getElementById("searchTerm").value.trim();
+                const searchTerm2 = document.getElementById("searchTerm2").value.trim();
+
+                if (searchTerm !== "" || searchTerm2 !== "" || event.type === "click" || (event.type === "keypress" && event.key === "Enter")) {
+                    const results = await performSearch();
+                    const searchResultsElement = document.getElementById("searchResults");
+                    searchResultsElement.innerHTML = "";
+
+                    if (results.length > 0) {
+                        const table = createTableHeader(language);
+                        results.forEach(result => {
+                            const row = table.insertRow();
+                            Object.entries(result).forEach(([key, value]) => {
+                                const cell = row.insertCell();
+
+                                if (key === "libretto" || key === "traduzione/translation") {
+                                    if (value === "True") {
+                                        cell.textContent = "✅";
+                                    } else if (value === "False") {
+                                        cell.textContent = "❌";
+                                    } else {
+                                        cell.textContent = value;
+                                    }
+                                } else if (typeof value === 'string' && value.includes('<a href=')) {
+                                    cell.innerHTML = value;
+                                } else {
+                                    cell.textContent = value;
+                                }
+                            });
+                        });
+                        searchResultsElement.appendChild(table);
+                    } else {
+                        searchResultsElement.innerHTML = "<p style='padding: 20px; text-align: center; color: #666;'>No results found for the specified search criteria.</p>";
+                    }
+                }
+            } catch (error) {
+                console.error("Error occurred while performing search and displaying results:", error);
+                alert("An error occurred while performing the search and displaying results. Please try again.");
+            }
+        }
+
+        // CSV Download
+        function downloadCSV(data, filename) {
+            const csvContent = "data:text/csv;charset=utf-8," + data.map(row => row.join(",")).join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function performSearchAndDownload() {
+            try {
+                const results = await performSearch();
+                if (results.length > 0) {
+                    const tableData = results.map(result => Object.values(result));
+                    downloadCSV(tableData, "search_results.csv");
+                } else {
+                    alert("No results found for the specified search criteria.");
+                }
+            } catch (error) {
+                console.error("Error occurred while performing search and downloading CSV:", error);
+                alert("An error occurred while performing the search and downloading the CSV. Please try again.");
+            }
+        }
+
+        // Reset Search
+        function resetSearch() {
+            document.getElementById("searchTerm").value = "";
+            document.getElementById("searchTerm2").value = "";
+            document.getElementById("minYear").value = "";
+            document.getElementById("maxYear").value = "";
+            document.getElementById("searchResults").innerHTML = "";
+            document.getElementById("librettoCheckbox").checked = false;
+            document.getElementById("translationCheckbox").checked = false;
+            document.getElementById("resultCount").textContent = "0";
+        }
+
+        // Initialize
+        const pageLanguage = "English";
+
+        async function initialize() {
+            await loadCityMap();
+
+            document.getElementById("searchButton").addEventListener("click", (event) => performSearchAndDisplay(pageLanguage, event));
+            document.getElementById("searchTerm").addEventListener("keypress", (event) => {
+                if (event.key === "Enter") performSearchAndDisplay(pageLanguage, event);
+            });
+            document.getElementById("searchTerm2").addEventListener("keypress", (event) => {
+                if (event.key === "Enter") performSearchAndDisplay(pageLanguage, event);
+            });
+        }
+
+        initialize();
+    </script>
+</body>
 </html>
