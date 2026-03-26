@@ -9,10 +9,10 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: #1a1a1a;
+      background: #ffffff;
       overflow: hidden;
       font-family: 'Segoe UI', system-ui, sans-serif;
-      color: #eee;
+      color: #333;
     }
 
     #cy {
@@ -26,7 +26,7 @@
     #loader {
       position: fixed;
       inset: 0;
-      background: #1a1a1a;
+      background: #ffffff;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -37,13 +37,13 @@
     .spinner {
       width: 40px;
       height: 40px;
-      border: 4px solid #333;
+      border: 4px solid #ddd;
       border-top-color: #800000;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #loader p { color: #777; font-size: 0.85em; letter-spacing: 0.04em; }
+    #loader p { color: #999; font-size: 0.85em; letter-spacing: 0.04em; }
 
     /* ── Search ──────────────────────────────────────────────── */
     #search-wrap {
@@ -56,23 +56,24 @@
       gap: 6px;
     }
     #search-input {
-      background: rgba(25,25,25,0.93);
-      border: 1px solid #444;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ccc;
       border-radius: 6px;
-      color: #eee;
+      color: #333;
       font-size: 0.82em;
       padding: 7px 11px;
       width: 210px;
       outline: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
       transition: border-color 0.2s;
     }
     #search-input:focus { border-color: #800000; }
-    #search-input::placeholder { color: #555; }
+    #search-input::placeholder { color: #aaa; }
     #search-clear {
-      background: #2a2a2a;
-      border: 1px solid #444;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
       border-radius: 50%;
-      color: #888;
+      color: #777;
       cursor: pointer;
       display: none;
       font-size: 0.75em;
@@ -93,14 +94,15 @@
       gap: 4px;
     }
     .zoom-btn {
-      background: rgba(25,25,25,0.93);
-      border: 1px solid #444;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ccc;
       border-radius: 6px;
-      color: #bbb;
+      color: #555;
       cursor: pointer;
       font-size: 1em;
       line-height: 1;
       padding: 7px 11px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
       transition: background 0.15s, color 0.15s;
     }
     .zoom-btn:hover { background: #800000; border-color: #800000; color: #fff; }
@@ -111,16 +113,17 @@
       bottom: 12px;
       right: 12px;
       z-index: 20;
-      background: rgba(25,25,25,0.93);
-      border: 1px solid #444;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ccc;
       border-radius: 6px;
       padding: 10px 14px;
       font-size: 0.76em;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
       display: flex;
       flex-direction: column;
       gap: 7px;
     }
-    .legend-row { display: flex; align-items: center; gap: 8px; color: #ccc; }
+    .legend-row { display: flex; align-items: center; gap: 8px; color: #444; }
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
     /* ── Info panel ──────────────────────────────────────────── */
@@ -129,13 +132,14 @@
       bottom: 12px;
       left: 12px;
       z-index: 20;
-      background: rgba(18,18,18,0.96);
-      border: 1px solid #444;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid #ddd;
       border-left: 3px solid #800000;
       border-radius: 6px;
       padding: 12px 16px;
       min-width: 190px;
       max-width: 270px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       display: none;
     }
     #info-header {
@@ -144,11 +148,11 @@
       align-items: flex-start;
       margin-bottom: 6px;
     }
-    #info-name { font-weight: 600; font-size: 0.95em; color: #fff; flex: 1; }
+    #info-name { font-weight: 600; font-size: 0.95em; color: #111; flex: 1; }
     #info-close {
       background: none;
       border: none;
-      color: #666;
+      color: #aaa;
       cursor: pointer;
       font-size: 1em;
       line-height: 1;
@@ -156,15 +160,15 @@
       padding: 0;
       transition: color 0.15s;
     }
-    #info-close:hover { color: #fff; }
+    #info-close:hover { color: #333; }
     #info-type {
-      color: #888;
+      color: #999;
       font-size: 0.72em;
       text-transform: uppercase;
       letter-spacing: 0.07em;
       margin-bottom: 8px;
     }
-    #info-degree { color: #777; font-size: 0.78em; margin-bottom: 8px; }
+    #info-degree { color: #aaa; font-size: 0.78em; margin-bottom: 8px; }
     #info-connections {
       list-style: none;
       max-height: 130px;
@@ -173,16 +177,16 @@
     }
     #info-connections::-webkit-scrollbar { width: 4px; }
     #info-connections::-webkit-scrollbar-track { background: transparent; }
-    #info-connections::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+    #info-connections::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
     #info-connections li {
-      color: #aaa;
+      color: #555;
       padding: 3px 0;
-      border-bottom: 1px solid #222;
+      border-bottom: 1px solid #eee;
       cursor: pointer;
       transition: color 0.12s;
     }
     #info-connections li:last-child { border-bottom: none; }
-    #info-connections li:hover { color: #fff; }
+    #info-connections li:hover { color: #111; }
   </style>
 </head>
 <body>
@@ -233,7 +237,7 @@
     const LOG_MIN = Math.log(50), LOG_MAX = Math.log(500);
     function vizSize(raw) {
       const t = (Math.log(Math.max(50, raw)) - LOG_MIN) / (LOG_MAX - LOG_MIN);
-      return Math.round(10 + t * 32); // 10–42 px
+      return Math.round(14 + t * 32); // 14–46 px — minimum raised so small nodes are visible
     }
 
     /* ── load & convert data.json ─────────────────────────────── */
@@ -272,8 +276,8 @@
             'height':               'data(size)',
             'label':                'data(label)',
             'font-size':            11,
-            'color':                '#ffffff',
-            'text-outline-color':   '#111111',
+            'color':                '#333',
+            'text-outline-color':   '#ffffff',
             'text-outline-width':   2,
             'text-valign':          'center',
             'text-halign':          'center',
@@ -285,8 +289,8 @@
           selector: 'edge',
           style: {
             'width':       1,
-            'line-color':  '#666666',
-            'opacity':     0.4,
+            'line-color':  '#bbbbbb',
+            'opacity':     0.5,
             'curve-style': 'straight',
           }
         },
@@ -315,7 +319,8 @@
           style: { 'opacity': 1 }
         }
       ],
-      layout:          { name: 'preset' },
+
+      layout:           { name: 'preset' },
       wheelSensitivity: 0.3,
       minZoom:          0.05,
       maxZoom:          8,
@@ -326,17 +331,17 @@
       name:             'cose',
       animate:          false,        // skip per-tick repaints → much faster
       randomize:        true,
-      componentSpacing: 80,
-      nodeRepulsion:    () => 450000,
-      idealEdgeLength:  () => 45,
+      componentSpacing: 160,          // isolated nodes further apart
+      nodeRepulsion:    () => 8000000, // strong repulsion → spread out
+      idealEdgeLength:  () => 80,     // longer edges → more spread
       edgeElasticity:   () => 100,
-      gravity:          80,
-      numIter:          1000,
+      gravity:          15,           // weak gravity → less clumping at centre
+      numIter:          1500,
       initialTemp:      200,
       coolingFactor:    0.95,
       minTemp:          1.0,
       fit:              true,
-      padding:          30,
+      padding:          40,
     });
 
     layout.on('layoutstop', () => {
@@ -420,16 +425,17 @@
     }
 
     cy.on('tap', 'node', evt => showInfo(evt.target));
-    cy.on('tap', evt => { if (evt.target === cy) clearSelection(); });
+    cy.on('tap', evt  => { if (evt.target === cy) clearSelection(); });
     document.getElementById('info-close').addEventListener('click', clearSelection);
 
     /* ── zoom controls ────────────────────────────────────────── */
+    const mid = () => ({ x: cy.width() / 2, y: cy.height() / 2 });
     document.getElementById('zoom-in').addEventListener('click',
-      () => cy.animate({ zoom: { level: cy.zoom() * 1.4, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }, duration: 200 }));
+      () => cy.animate({ zoom: { level: cy.zoom() * 1.4, renderedPosition: mid() }, duration: 200 }));
     document.getElementById('zoom-out').addEventListener('click',
-      () => cy.animate({ zoom: { level: cy.zoom() / 1.4, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }, duration: 200 }));
+      () => cy.animate({ zoom: { level: cy.zoom() / 1.4, renderedPosition: mid() }, duration: 200 }));
     document.getElementById('zoom-fit').addEventListener('click',
-      () => cy.animate({ fit: { padding: 30 }, duration: 300 }));
+      () => cy.animate({ fit: { padding: 40 }, duration: 300 }));
 
   })();
   </script>
