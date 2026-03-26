@@ -259,7 +259,47 @@ td:nth-child(1) {
     margin-top: 20px;
 }
 
-/* 8. Responsive Design */
+/* 8. Dashboard Grid (stats page) */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    padding: 20px 24px 24px;
+    border-top: 3px solid #800000;
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-card h2 {
+    margin: 0 0 14px 0;
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #800000;
+}
+
+/* Wrapper needed for Chart.js responsive sizing */
+.chart-wrap {
+    position: relative;
+    height: 300px;
+}
+
+.stat-card iframe {
+    border: none;
+    border-radius: 4px;
+    height: 360px;
+    width: 100%;
+}
+
+/* 9. Responsive Design */
 @media (max-width: 768px) {
     .home-container {
         flex-direction: column;
@@ -292,5 +332,9 @@ td:nth-child(1) {
 
     header, footer {
         text-align: center;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
     }
 }

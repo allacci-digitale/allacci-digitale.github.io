@@ -5,7 +5,9 @@
       "Bash(grep -E \"\\\\.\\(png|jpg|jpeg\\)$\")",
       "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\lucag\\\\Documents\\\\GitHub\\\\allacci-digitale.github.io\\\\fix_footer.ps1\")",
       "Bash(del \"C:\\\\Users\\\\lucag\\\\Documents\\\\GitHub\\\\allacci-digitale.github.io\\\\fix_footer.ps1\")",
-      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\lucag\\\\Documents\\\\GitHub\\\\allacci-digitale.github.io\\\\fix_footer2.ps1\")"
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\lucag\\\\Documents\\\\GitHub\\\\allacci-digitale.github.io\\\\fix_footer2.ps1\")",
+      "Bash(python fix_notebook.py)",
+      "Bash(python -c \":*)"
     ]
   }
 }

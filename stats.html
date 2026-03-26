@@ -1,4 +1,3 @@
-<!-- stats.html -->
 <!DOCTYPE html>
 <html lang="it">
 
@@ -13,6 +12,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Aboreto&display=swap">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>main { max-width: 1100px; }</style>
     <title>Statistiche - Allacci Digitale</title>
 </head>
 
@@ -36,35 +36,242 @@
     <main>
         <section id="stats">
             <h1>Statistiche</h1>
-            <p>Presentiamo qui alcune visualizzazioni create a partire dalla base di dati <i>(work in progress)</i>.</p>
+            <div class="dashboard-grid">
 
-            <h2>1. Mappa dei luoghi di pubblicazione di tutte le opere indicizzate</h2>
-            <a href="https://allacci-digitale.github.io/images/allacci-locations.html" target="_blank">
-                <iframe
-                    src="https://allacci-digitale.github.io/images/allacci-locations.html"
-                    style="width: 100%; height: 500px; border: 1px solid #ccc;"
-                    title="Mappa dei luoghi di pubblicazione"
-                    loading="lazy"
-                ></iframe>
-            </a>
-            <p><a href="https://allacci-digitale.github.io/images/allacci-locations.html" target="_blank">[apri in una nuova scheda]</a></p>
+                <div class="stat-card">
+                    <h2>Top 10 autori</h2>
+                    <div class="chart-wrap"><canvas id="chartAuthors"></canvas></div>
+                </div>
 
-            <h2>2. Rete di relazioni tra autori e editori</h2>
-            <a href="https://allacci-digitale.github.io/images/network/" target="_blank">
-                <iframe
-                    src="https://allacci-digitale.github.io/images/network/"
-                    style="width: 100%; height: 500px; border: 1px solid #ccc;"
-                    title="Rete di relazioni tra autori e editori"
-                    loading="lazy"
-                ></iframe>
-            </a>
-            <p><a href="https://allacci-digitale.github.io/images/network/" target="_blank">[apri in una nuova scheda]</a></p>
+                <div class="stat-card">
+                    <h2>Top 10 editori</h2>
+                    <div class="chart-wrap"><canvas id="chartPublishers"></canvas></div>
+                </div>
+
+                <div class="stat-card">
+                    <h2>Distribuzione dei generi</h2>
+                    <div class="chart-wrap"><canvas id="chartGenres"></canvas></div>
+                </div>
+
+                <div class="stat-card">
+                    <h2>Distribuzione cronologica (per decade)</h2>
+                    <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
+                </div>
+
+                <div class="stat-card">
+                    <h2>Luoghi di pubblicazione</h2>
+                    <iframe
+                        src="https://allacci-digitale.github.io/images/allacci-locations.html"
+                        title="Mappa dei luoghi di pubblicazione"
+                        loading="lazy"
+                    ></iframe>
+                </div>
+
+                <div class="stat-card">
+                    <h2>Rete autori–editori</h2>
+                    <iframe
+                        src="https://allacci-digitale.github.io/images/network/"
+                        title="Rete di relazioni tra autori e editori"
+                        loading="lazy"
+                    ></iframe>
+                </div>
+
+            </div>
         </section>
     </main>
 
     <footer>
         <p><a href="credits.html">Contatti</a> &mdash; <a href="https://github.com/allacci-digitale/allacci-digitale.github.io"><i class="fab fa-github" aria-hidden="true"></i> GitHub</a></p>
     </footer>
-</body>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    /* ── palette ─────────────────────────────────────────────────────── */
+    const MAROON   = '#800000';
+    const MAROON_A = 'rgba(128,0,0,0.80)';
+    const MAROON_H = 'rgba(165,42,42,0.92)';
+    const PALETTE  = [
+        '#800000','#a52a2a','#bf4040','#d35f5f',
+        '#8e44ad','#2980b9','#16a085','#27ae60',
+        '#f39c12','#d35400','#7f8c8d','#2c3e50'
+    ];
+
+    /* ── helpers ─────────────────────────────────────────────────────── */
+    function stripHtml(s) {
+        return s ? s.replace(/<[^>]+>/g, '').trim() : '';
+    }
+
+    function truncate(s, n = 24) {
+        return s.length > n ? s.slice(0, n - 1) + '\u2026' : s;
+    }
+
+    /* ── data processing (single pass) ───────────────────────────────── */
+    function processData(entries) {
+        const authors = {}, publishers = {}, genres = {}, decades = {};
+
+        for (const e of entries) {
+            const a = stripHtml(e['autore/author']);
+            const p = stripHtml(e['editore/publisher']);
+            const g = stripHtml(e['genere/genre']);
+            const y = Number(e['anno/year']);
+
+            if (a && a !== 'Unknown') authors[a]    = (authors[a]    || 0) + 1;
+            if (p && p !== 'Unknown') publishers[p] = (publishers[p] || 0) + 1;
+            if (g && g !== 'Unknown') genres[g]     = (genres[g]     || 0) + 1;
+            if (y) {
+                const d = Math.floor(y / 10) * 10;
+                decades[d] = (decades[d] || 0) + 1;
+            }
+        }
+
+        const top = (obj, n) =>
+            Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n);
+
+        return {
+            topAuthors:    top(authors, 10),
+            topPublishers: top(publishers, 10),
+            genres:        Object.entries(genres).sort((a, b) => b[1] - a[1]),
+            timeline:      Object.entries(decades).sort((a, b) => +a[0] - +b[0]),
+        };
+    }
+
+    /* ── chart: horizontal bar (authors / publishers) ────────────────── */
+    function drawHBar(id, pairs) {
+        // reverse so highest value appears at top
+        const rev = [...pairs].reverse();
+        new Chart(document.getElementById(id), {
+            type: 'bar',
+            data: {
+                labels: rev.map(([name]) => truncate(name)),
+                datasets: [{
+                    data: rev.map(([, n]) => n),
+                    backgroundColor: MAROON_A,
+                    hoverBackgroundColor: MAROON_H,
+                    borderRadius: 3,
+                    borderSkipped: false,
+                }],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: '#f0f0f0' },
+                        ticks: { color: '#666', font: { size: 11 } },
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#333', font: { size: 12 } },
+                    },
+                },
+            },
+        });
+    }
+
+    /* ── chart: doughnut (genres) ─────────────────────────────────────── */
+    function drawGenres(genres) {
+        const total     = genres.reduce((s, [, c]) => s + c, 0);
+        const threshold = total * 0.02;          // < 2 % → "Altro"
+        const main      = genres.filter(([, c]) => c >= threshold);
+        const otherN    = genres.filter(([, c]) => c < threshold)
+                                .reduce((s, [, c]) => s + c, 0);
+        if (otherN > 0) main.push(['Altro', otherN]);
+
+        new Chart(document.getElementById('chartGenres'), {
+            type: 'doughnut',
+            data: {
+                labels: main.map(([name]) => name),
+                datasets: [{
+                    data: main.map(([, n]) => n),
+                    backgroundColor: PALETTE.slice(0, main.length),
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                    hoverOffset: 6,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '54%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: { size: 11 },
+                            color: '#444',
+                            boxWidth: 13,
+                            padding: 7,
+                        },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => {
+                                const pct = ((ctx.parsed / total) * 100).toFixed(1);
+                                return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    /* ── chart: vertical bar (timeline by decade) ────────────────────── */
+    function drawTimeline(timeline) {
+        new Chart(document.getElementById('chartTimeline'), {
+            type: 'bar',
+            data: {
+                labels: timeline.map(([d]) => `${d}s`),
+                datasets: [{
+                    data: timeline.map(([, n]) => n),
+                    backgroundColor: MAROON_A,
+                    hoverBackgroundColor: MAROON_H,
+                    borderRadius: 3,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#555',
+                            font: { size: 11 },
+                            maxRotation: 45,
+                            minRotation: 45,
+                        },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f0f0f0' },
+                        ticks: { color: '#666', font: { size: 11 } },
+                    },
+                },
+            },
+        });
+    }
+
+    /* ── init ────────────────────────────────────────────────────────── */
+    async function init() {
+        try {
+            const entries = await fetch('data/database.json').then(r => r.json());
+            const data    = processData(entries);
+            drawHBar('chartAuthors',    data.topAuthors);
+            drawHBar('chartPublishers', data.topPublishers);
+            drawGenres(data.genres);
+            drawTimeline(data.timeline);
+        } catch (err) {
+            console.error('Impossibile caricare database.json:', err);
+        }
+    }
+
+    init();
+    </script>
+
+</body>
 </html>
