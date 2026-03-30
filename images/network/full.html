@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rete autori–editori (vista completa) — Allacci Digitale</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <!-- cose-bilkent: cluster-aware layout with label non-overlap support -->
+  <script src="https://unpkg.com/cytoscape-cose-bilkent/cytoscape-cose-bilkent.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #fff;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #333;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header bar ───────────────────────────────────────────── */
+    #header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
+      background: #fff;
+      border-bottom: 3px solid #800000;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+    #header-title {
+      font-size: 0.78em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: #800000;
+    }
+    #header-sub {
+      font-size: 0.75em;
+      color: #bbb;
+    }
+    #btn-back {
+      margin-left: auto;
+      font-size: 0.75em;
+      color: #999;
+      text-decoration: none;
+      padding: 5px 9px;
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+      white-space: nowrap;
+      cursor: pointer;
+      background: none;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    #btn-back:hover { color: #800000; border-color: #800000; }
+
+    /* ── Canvas ───────────────────────────────────────────────── */
+    #cy { flex: 1; width: 100%; position: relative; }
+
+    /* ── Loader ───────────────────────────────────────────────── */
+    #loader {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      gap: 14px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #eee;
+      border-top-color: #800000;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loader p { font-size: 0.8em; color: #bbb; letter-spacing: 0.03em; }
+
+    /* ── Search (top-left overlay) ────────────────────────────── */
+    #search-wrap {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 20;
+      width: 240px;
+    }
+    #search-input {
+      width: 100%;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      color: #333;
+      font-size: 0.82em;
+      padding: 7px 30px 7px 10px;
+      outline: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      transition: border-color 0.2s;
+    }
+    #search-input:focus { border-color: #800000; }
+    #search-input::placeholder { color: #bbb; }
+    #search-clear {
+      position: absolute;
+      right: 8px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: #bbb; cursor: pointer;
+      display: none; font-size: 0.82em;
+    }
+    #search-clear:hover { color: #800000; }
+    #autocomplete {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: none;
+      z-index: 100;
+      overflow: hidden;
+    }
+    .ac-item {
+      padding: 7px 12px;
+      font-size: 0.82em;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item:hover, .ac-item.active { background: #f9f2f2; }
+    .ac-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .ac-type { color: #bbb; font-size: 0.85em; margin-left: auto; flex-shrink: 0; }
+
+    /* ── Zoom & reset controls ────────────────────────────────── */
+    #controls {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .ctrl-btn {
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      color: #555;
+      cursor: pointer;
+      font-size: 0.85em;
+      line-height: 1;
+      padding: 7px 11px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .ctrl-btn:hover { background: #800000; border-color: #800000; color: #fff; }
+    #btn-reset { display: none; }
+
+    /* ── Legend ───────────────────────────────────────────────── */
+    #legend {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      z-index: 20;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.74em;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .legend-row { display: flex; align-items: center; gap: 7px; color: #555; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Info panel ───────────────────────────────────────────── */
+    #info-panel {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 20;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-left: 3px solid #800000;
+      border-radius: 6px;
+      padding: 12px 14px;
+      width: 220px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: none;
+    }
+    #info-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    #info-name { font-weight: 600; font-size: 0.92em; color: #111; flex: 1; line-height: 1.3; }
+    #info-close {
+      background: none; border: none; color: #bbb; cursor: pointer;
+      font-size: 0.9em; line-height: 1; padding: 0; margin-left: 6px; flex-shrink: 0;
+    }
+    #info-close:hover { color: #555; }
+    #info-type { font-size: 0.68em; text-transform: uppercase; letter-spacing: 0.07em; color: #999; margin-bottom: 8px; }
+    #info-degree { font-size: 0.76em; color: #aaa; margin-bottom: 6px; }
+    #info-connections { list-style: none; max-height: 200px; overflow-y: auto; font-size: 0.76em; }
+    #info-connections::-webkit-scrollbar { width: 3px; }
+    #info-connections::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+    .info-group-label {
+      font-weight: 600; color: #800000; margin: 6px 0 3px;
+      font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.06em;
+      cursor: default;
+    }
+    #info-connections li {
+      color: #555; padding: 3px 0; border-bottom: 1px solid #f0f0f0;
+      cursor: pointer; transition: color 0.12s;
+    }
+    #info-connections li:last-child { border-bottom: none; }
+    #info-connections li:hover { color: #800000; }
+  </style>
+</head>
+<body>
+
+  <div id="header">
+    <span id="header-title">Rete autori–editori</span>
+    <span id="header-sub">701 nodi · 697 connessioni</span>
+    <button id="btn-back" onclick="history.back()">← Chiudi</button>
+  </div>
+
+  <div id="cy">
+    <div id="loader">
+      <div class="spinner"></div>
+      <p>Calcolo del layout in corso…</p>
+    </div>
+
+    <div id="search-wrap">
+      <input id="search-input" type="text" placeholder="Cerca persona…" autocomplete="off" spellcheck="false">
+      <button id="search-clear">✕</button>
+      <div id="autocomplete"></div>
+    </div>
+
+    <div id="controls">
+      <button class="ctrl-btn" id="btn-reset">↺ Torna alla rete</button>
+      <button class="ctrl-btn" id="zoom-in">+</button>
+      <button class="ctrl-btn" id="zoom-out">−</button>
+      <button class="ctrl-btn" id="zoom-fit">⌖</button>
+    </div>
+
+    <div id="legend">
+      <div class="legend-row"><div class="legend-dot" style="background:#800000"></div><span>Autore</span></div>
+      <div class="legend-row"><div class="legend-dot" style="background:#2e6fac"></div><span>Editore</span></div>
+    </div>
+
+    <div id="info-panel">
+      <div id="info-header">
+        <div id="info-name"></div>
+        <button id="info-close">✕</button>
+      </div>
+      <div id="info-type"></div>
+      <div id="info-degree"></div>
+      <ul id="info-connections"></ul>
+    </div>
+  </div>
+
+  <script>
+  (async () => {
+
+    /* ── Load data ────────────────────────────────────────────── */
+    const raw = await fetch('data.json').then(r => r.json());
+
+    const nodeMap = {};
+    const nameIdx = {};
+    const allLabels = [];
+    const adj = {};
+
+    // Compute degree per node first
+    const degree = {};
+    raw.edges.forEach(e => {
+      degree[e.source] = (degree[e.source] || 0) + 1;
+      degree[e.target] = (degree[e.target] || 0) + 1;
+      (adj[e.source] ??= new Set()).add(e.target);
+      (adj[e.target] ??= new Set()).add(e.source);
+    });
+
+    raw.nodes.forEach(n => {
+      nodeMap[n.id] = n;
+      nameIdx[n.label.toLowerCase()] = n.id;
+      allLabels.push({ label: n.label, id: n.id, type: n.attributes.type });
+    });
+
+    /* ── Build elements ───────────────────────────────────────── */
+    const elements = [
+      ...raw.nodes.map(n => {
+        const type  = n.attributes.type;
+        const deg   = degree[n.id] || 0;
+        // Scale node size logarithmically by degree
+        const size  = Math.round(8 + Math.log(1 + deg) * 7);
+        return {
+          group: 'nodes',
+          data: {
+            id:     n.id,
+            label:  n.label,
+            type,
+            color:  type === 'publisher' ? '#2e6fac' : '#800000',
+            size,
+            degree: deg,
+          }
+        };
+      }),
+      ...raw.edges.map(e => ({
+        group: 'edges',
+        data: { id: e.id, source: e.source, target: e.target }
+      }))
+    ];
+
+    /* ── Init Cytoscape ───────────────────────────────────────── */
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements,
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color':     'data(color)',
+            'width':                'data(size)',
+            'height':               'data(size)',
+            'label':                'data(label)',
+            'font-size':            10,
+            'font-family':          'Segoe UI, system-ui, sans-serif',
+            'color':                '#333',
+            'text-outline-color':   '#fff',
+            'text-outline-width':   2,
+            'text-valign':          'bottom',
+            'text-halign':          'center',
+            'text-margin-y':        3,
+            // Only show labels for high-degree nodes at overview zoom
+            'min-zoomed-font-size': 14,
+          }
+        },
+        {
+          // High-degree nodes: always show label
+          selector: 'node[degree >= 5]',
+          style: {
+            'min-zoomed-font-size': 0,
+            'font-size':            11,
+            'font-weight':          '600',
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width':       0.8,
+            'line-color':  '#ddd',
+            'opacity':     0.6,
+            'curve-style': 'straight',
+          }
+        },
+        // Dimmed state (when a node is selected)
+        {
+          selector: '.dimmed',
+          style: { 'opacity': 0.06 }
+        },
+        {
+          selector: 'node.focal',
+          style: {
+            'border-width': 3,
+            'border-color': '#800000',
+            'opacity':      1,
+          }
+        },
+        {
+          selector: 'node.neighbour',
+          style: { 'opacity': 1 }
+        },
+        {
+          selector: 'edge.highlighted',
+          style: {
+            'line-color': '#aaa',
+            'opacity':    0.8,
+            'width':      1.5,
+          }
+        },
+      ],
+      wheelSensitivity: 0.3,
+      minZoom: 0.05,
+      maxZoom: 10,
+    });
+
+    /* ── Run cose-bilkent layout ──────────────────────────────── */
+    const layout = cy.layout({
+      name:                       'cose-bilkent',
+      animate:                    false,
+      quality:                    'default',
+      randomize:                  true,
+      nodeDimensionsIncludeLabels: true,   // prevents label overlap
+      nodeRepulsion:              6500,
+      idealEdgeLength:            80,
+      edgeElasticity:             0.45,
+      nestingFactor:              0.1,
+      gravity:                    0.15,
+      gravityRange:               3.8,
+      numIter:                    2500,
+      tile:                       true,
+      tilingPaddingVertical:      12,
+      tilingPaddingHorizontal:    12,
+      padding:                    40,
+      fit:                        true,
+    });
+
+    layout.on('layoutstop', () => {
+      document.getElementById('loader').style.display = 'none';
+    });
+
+    layout.run();
+
+    /* ── Ego highlight ────────────────────────────────────────── */
+    let selectedId = null;
+
+    function highlightEgo(nodeId) {
+      selectedId = nodeId;
+      const ego  = cy.getElementById(nodeId);
+      const nbrs = ego.neighborhood('node');
+      const edges = ego.connectedEdges();
+
+      cy.startBatch();
+      cy.elements().addClass('dimmed')
+                   .removeClass('focal neighbour highlighted');
+      ego.removeClass('dimmed').addClass('focal');
+      nbrs.removeClass('dimmed').addClass('neighbour');
+      edges.removeClass('dimmed').addClass('highlighted');
+      cy.endBatch();
+
+      showInfo(nodeId);
+      document.getElementById('btn-reset').style.display = 'block';
+    }
+
+    function clearHighlight() {
+      selectedId = null;
+      cy.startBatch();
+      cy.elements().removeClass('dimmed focal neighbour highlighted');
+      cy.endBatch();
+      document.getElementById('info-panel').style.display = 'none';
+      document.getElementById('btn-reset').style.display = 'none';
+    }
+
+    cy.on('tap', 'node', evt => highlightEgo(evt.target.id()));
+    cy.on('tap', evt => { if (evt.target === cy) clearHighlight(); });
+
+    /* ── Info panel ───────────────────────────────────────────── */
+    function showInfo(nodeId) {
+      const n    = nodeMap[nodeId];
+      const type = n.attributes.type;
+      const deg  = (adj[nodeId] ?? new Set()).size;
+
+      document.getElementById('info-name').textContent   = n.label;
+      document.getElementById('info-type').textContent   = type === 'publisher' ? 'Editore' : 'Autore';
+      document.getElementById('info-degree').textContent = `${deg} connession${deg === 1 ? 'e' : 'i'}`;
+
+      const neighbours = [...(adj[nodeId] ?? [])].map(id => nodeMap[id]);
+      const authors    = neighbours.filter(x => x.attributes.type === 'author')
+                                   .sort((a,b) => a.label.localeCompare(b.label, 'it'));
+      const publishers = neighbours.filter(x => x.attributes.type === 'publisher')
+                                   .sort((a,b) => a.label.localeCompare(b.label, 'it'));
+
+      const list = document.getElementById('info-connections');
+      list.innerHTML = '';
+
+      function addGroup(label, items) {
+        if (!items.length) return;
+        const hdr = document.createElement('li');
+        hdr.className = 'info-group-label';
+        hdr.textContent = label;
+        list.appendChild(hdr);
+        items.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item.label;
+          li.addEventListener('click', () => {
+            cy.animate({ fit: { eles: cy.getElementById(item.id), padding: 120 }, duration: 400 });
+            highlightEgo(item.id);
+          });
+          list.appendChild(li);
+        });
+      }
+
+      addGroup('Autori', authors);
+      addGroup('Editori', publishers);
+
+      document.getElementById('info-panel').style.display = 'block';
+    }
+
+    document.getElementById('info-close').addEventListener('click', clearHighlight);
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      clearHighlight();
+      cy.animate({ fit: { padding: 40 }, duration: 400 });
+    });
+
+    /* ── Zoom controls ────────────────────────────────────────── */
+    function mid() { return { x: cy.width() / 2, y: cy.height() / 2 }; }
+    document.getElementById('zoom-in').addEventListener('click',
+      () => cy.animate({ zoom: { level: cy.zoom() * 1.4, renderedPosition: mid() }, duration: 200 }));
+    document.getElementById('zoom-out').addEventListener('click',
+      () => cy.animate({ zoom: { level: cy.zoom() / 1.4, renderedPosition: mid() }, duration: 200 }));
+    document.getElementById('zoom-fit').addEventListener('click',
+      () => cy.animate({ fit: { padding: 40 }, duration: 300 }));
+
+    /* ── Autocomplete ─────────────────────────────────────────── */
+    const searchInput = document.getElementById('search-input');
+    const searchClear = document.getElementById('search-clear');
+    const acBox       = document.getElementById('autocomplete');
+    let acIndex = -1, acItems = [];
+
+    function renderAC(query) {
+      const q = query.toLowerCase().trim();
+      acBox.innerHTML = ''; acIndex = -1;
+      if (!q) { acBox.style.display = 'none'; return; }
+      acItems = allLabels.filter(x => x.label.toLowerCase().includes(q)).slice(0, 12);
+      if (!acItems.length) { acBox.style.display = 'none'; return; }
+      acItems.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'ac-item';
+        div.innerHTML = `
+          <span class="ac-dot" style="background:${item.type === 'publisher' ? '#2e6fac' : '#800000'}"></span>
+          <span>${item.label}</span>
+          <span class="ac-type">${item.type === 'publisher' ? 'editore' : 'autore'}</span>`;
+        div.addEventListener('mousedown', e => { e.preventDefault(); selectItem(i); });
+        acBox.appendChild(div);
+      });
+      acBox.style.display = 'block';
+    }
+
+    function selectItem(i) {
+      const item = acItems[i];
+      if (!item) return;
+      searchInput.value = item.label;
+      searchClear.style.display = 'block';
+      acBox.style.display = 'none';
+      const node = cy.getElementById(item.id);
+      cy.animate({ fit: { eles: node, padding: 160 }, duration: 500 });
+      highlightEgo(item.id);
+    }
+
+    searchInput.addEventListener('input', function () {
+      searchClear.style.display = this.value ? 'block' : 'none';
+      renderAC(this.value);
+    });
+    searchInput.addEventListener('keydown', function (e) {
+      const items = acBox.querySelectorAll('.ac-item');
+      if (e.key === 'ArrowDown') { e.preventDefault(); acIndex = Math.min(acIndex+1, items.length-1); items.forEach((el,i) => el.classList.toggle('active', i===acIndex)); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); acIndex = Math.max(acIndex-1, -1); items.forEach((el,i) => el.classList.toggle('active', i===acIndex)); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (acIndex >= 0) selectItem(acIndex); else if (acItems.length === 1) selectItem(0); }
+      else if (e.key === 'Escape') acBox.style.display = 'none';
+    });
+    searchInput.addEventListener('blur', () => setTimeout(() => { acBox.style.display = 'none'; }, 150));
+    searchClear.addEventListener('click', () => {
+      searchInput.value = ''; searchClear.style.display = 'none';
+      acBox.style.display = 'none'; clearHighlight();
+    });
+
+  })();
+  </script>
+</body>
+</html>
