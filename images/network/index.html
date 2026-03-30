@@ -170,6 +170,20 @@
     #depth-toggle:checked::after { transform: translateX(14px); }
 
     /* ── "Open full network" button ───────────────────────────── */
+    #btn-reset {
+      display: none;
+      font-size: 0.75em;
+      color: #800000;
+      background: none;
+      padding: 5px 9px;
+      border: 1px solid #c88;
+      border-radius: 5px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    #btn-reset:hover { background: #800000; color: #fff; border-color: #800000; }
     #btn-full {
       margin-left: auto;
       font-size: 0.75em;
@@ -280,6 +294,9 @@
     #info-connections::-webkit-scrollbar { width: 3px; }
     #info-connections::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
     #info-connections li {
+      display: flex;
+      align-items: center;
+      gap: 4px;
       color: #555;
       padding: 3px 0;
       border-bottom: 1px solid #f0f0f0;
@@ -288,6 +305,14 @@
     }
     #info-connections li:last-child { border-bottom: none; }
     #info-connections li:hover { color: #800000; }
+    #info-connections li:hover .item-weight { color: #c06060; }
+    .item-weight {
+      margin-left: auto;
+      font-size: 0.8em;
+      color: #bbb;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -304,6 +329,8 @@
       <input type="checkbox" id="depth-toggle">
       <span>2° grado</span>
     </label>
+
+    <button id="btn-reset" title="Torna alla ricerca">↺ Reset</button>
 
     <a id="btn-full" href="full.html" target="_blank">Rete completa ↗</a>
   </div>
@@ -334,104 +361,155 @@
       </div>
     </div>
 
-    <!-- Info panel -->
-    <div id="info-panel">
-      <div id="info-header">
-        <div id="info-name"></div>
-        <button id="info-close" title="Chiudi">✕</button>
-      </div>
-      <div id="info-type"></div>
-      <div id="info-degree"></div>
-      <div id="info-groups">
-        <ul id="info-connections"></ul>
-      </div>
-    </div>
   </div>
 
   <script>
   (async () => {
 
-    /* ── Load & index data ────────────────────────────────────── */
+    /* ── Load & index ─────────────────────────────────────────── */
     const raw = await fetch('data.json').then(r => r.json());
+    // FIX 2 – pre-focus selects all text so user can type a new name immediately
 
-    const nodeMap = {};        // id → raw node
-    const nameIdx = {};        // label.toLowerCase() → id
-    const allLabels = [];      // for autocomplete
+    const nodeMap  = {};   // id → raw node
+    const allLabels = [];  // for autocomplete
 
     raw.nodes.forEach(n => {
       nodeMap[n.id] = n;
-      nameIdx[n.label.toLowerCase()] = n.id;
       allLabels.push({ label: n.label, id: n.id, type: n.attributes.type });
     });
 
-    // Adjacency list + global degree
-    const adj    = {};
-    const degree = {};
+    // Adjacency, global degree, and co-publication weights (edge.size)
+    const adj    = {};   // id → Set<id>
+    const degree = {};   // id → number of connections
+    const edgeW  = {};   // `${a}:${b}` → co-publication count
+
     raw.edges.forEach(e => {
       (adj[e.source] ??= new Set()).add(e.target);
       (adj[e.target] ??= new Set()).add(e.source);
       degree[e.source] = (degree[e.source] || 0) + 1;
       degree[e.target] = (degree[e.target] || 0) + 1;
+      const w = e.size || 1;
+      edgeW[`${e.source}:${e.target}`] = w;
+      edgeW[`${e.target}:${e.source}`] = w;
     });
 
     /* ── State ────────────────────────────────────────────────── */
-    let cy          = null;
+    let cy           = null;
     let currentFocal = null;
-    let depth2On    = false;
+    let depth2On     = false;
 
-    /* ── Cytoscape style ─────────────────────────────────────── */
+    /* ── Cytoscape stylesheet ─────────────────────────────────── */
     const CY_STYLE = [
       {
         selector: 'node',
         style: {
-          'background-color':     'data(color)',
-          'width':                'data(size)',
-          'height':               'data(size)',
-          'label':                'data(label)',
-          'font-size':            11,
-          'font-family':          'Segoe UI, system-ui, sans-serif',
-          'color':                '#222',
-          'text-outline-color':   '#fff',
-          'text-outline-width':   2.5,
-          'text-valign':          'bottom',
-          'text-halign':          'center',
-          'text-margin-y':        4,
+          'background-color':   'data(color)',
+          'width':              'data(size)',
+          'height':             'data(size)',
+          'label':              'data(label)',
+          'font-size':          11,
+          'font-family':        'Segoe UI, system-ui, sans-serif',
+          'color':              '#222',
+          'text-outline-color': '#fff',
+          'text-outline-width': 2.5,
+          'text-valign':        'bottom',
+          'text-halign':        'center',
+          'text-margin-y':      4,
         }
       },
       {
         selector: 'node[?focal]',
         style: {
-          'border-width':     3,
-          'border-color':     '#800000',
-          'font-weight':      'bold',
-          'font-size':        13,
+          'border-width': 3,
+          'border-color': '#800000',
+          'font-weight':  'bold',
+          'font-size':    13,
         }
       },
       {
         selector: 'node[depth="2"]',
-        style: {
-          'opacity': 0.65,
-        }
+        style: { 'opacity': 0.55 }
       },
       {
         selector: 'edge',
         style: {
-          'width':       'data(weight)',   // thickness encodes hub importance
-          'line-color':  '#bbb',
-          'opacity':     0.75,
+          'width':       'data(visWidth)',  // encodes co-publication count
+          'line-color':  '#aaa',
+          'opacity':     0.8,
           'curve-style': 'straight',
         }
       },
       {
         selector: 'edge[depth="2"]',
-        style: {
-          'line-color': '#ddd',
-          'opacity':    0.35,
-        }
+        style: { 'line-color': '#ddd', 'opacity': 0.3 }
       },
     ];
 
-    /* ── Collect ego subgraph ─────────────────────────────────── */
+    /* ── Bipartite preset positions ───────────────────────────── */
+    // Focal pinned at (0,0).
+    // Direct neighbours (d1) placed in a column left or right of focal
+    // depending on type; x-distance from focal encodes co-pub weight
+    // (closer = more co-publications). Depth-2 nodes go further out.
+    function computePositions(focalId, d1, d2) {
+      const focalType = nodeMap[focalId].attributes.type;
+      const isAuthor  = focalType === 'author';
+      const positions = {};
+      positions[focalId] = { x: 0, y: 0 };
+
+      // D1 array enriched with weight-to-focal, sorted heaviest first
+      const d1arr = [...d1].map(id => ({
+        id,
+        type:   nodeMap[id].attributes.type,
+        weight: edgeW[`${focalId}:${id}`] || 1,
+      })).sort((a, b) => b.weight - a.weight);
+
+      const maxW = Math.max(...d1arr.map(n => n.weight), 1);
+
+      // Bipartite: opposite-type connections go on the "main" side
+      // (publishers right of an author; authors left of a publisher)
+      const mainSide  = isAuthor ? 1 : -1;
+      const crossSide = -mainSide;
+
+      const d1main  = d1arr.filter(n => n.type !== focalType);
+      const d1cross = d1arr.filter(n => n.type === focalType); // rare
+
+      function placeWeighted(nodes, sign) {
+        if (!nodes.length) return;
+        const spacing  = Math.min(58, Math.max(26, 420 / nodes.length));
+        const totalH   = (nodes.length - 1) * spacing;
+        nodes.forEach((n, i) => {
+          // Heavier → x closer (160); lighter → x further (290)
+          const wNorm = n.weight / maxW;
+          const x     = sign * (160 + (1 - wNorm) * 130);
+          const y     = -totalH / 2 + i * spacing;
+          positions[n.id] = { x, y };
+        });
+      }
+
+      placeWeighted(d1main,  mainSide);
+      placeWeighted(d1cross, crossSide);
+
+      // D2 nodes: same bipartite logic but further out, no weight
+      const d2arr   = [...d2].map(id => ({ id, type: nodeMap[id].attributes.type }));
+      const d2main  = d2arr.filter(n => n.type !== focalType);
+      const d2cross = d2arr.filter(n => n.type === focalType);
+
+      function placeSimple(nodes, sign, baseX) {
+        if (!nodes.length) return;
+        const spacing = Math.min(52, Math.max(22, 400 / nodes.length));
+        const totalH  = (nodes.length - 1) * spacing;
+        nodes.forEach((n, i) => {
+          positions[n.id] = { x: sign * baseX, y: -totalH / 2 + i * spacing };
+        });
+      }
+
+      placeSimple(d2main,  mainSide,  360);
+      placeSimple(d2cross, crossSide, 360);
+
+      return positions;
+    }
+
+    /* ── Build element arrays ─────────────────────────────────── */
     function collectEgo(focalId, depth) {
       const d1 = new Set(adj[focalId] ?? []);
       const d2 = new Set();
@@ -440,7 +518,6 @@
           if (id2 !== focalId && !d1.has(id2)) d2.add(id2);
         }));
       }
-
       const nodeSet = new Set([focalId, ...d1, ...d2]);
 
       const nodeEls = [...nodeSet].map(id => {
@@ -449,19 +526,15 @@
         const isFocal = id === focalId;
         const isD2    = d2.has(id);
         const deg     = degree[id] || 1;
-        // Focal node: fixed large size; others: scaled by global degree
         const size    = isFocal ? 30 : Math.round(10 + Math.log(1 + deg) * 5);
         return {
           group: 'nodes',
           data: {
-            id,
-            label:  n.label,
-            type,
+            id, label: n.label, type,
             color:  type === 'publisher' ? '#2e6fac' : '#800000',
-            size,
-            degree: deg,
-            focal:  isFocal ? true : null,
-            depth:  isD2 ? '2' : '1',
+            size, degree: deg,
+            focal: isFocal ? true : null,
+            depth: isD2 ? '2' : '1',
           }
         };
       });
@@ -469,139 +542,74 @@
       const edgeEls = raw.edges
         .filter(e => nodeSet.has(e.source) && nodeSet.has(e.target))
         .map(e => {
-          const isD2edge  = d2.has(e.source) || d2.has(e.target);
-          // Weight = log of the non-focal endpoint's global degree
-          // → edges to high-degree hubs appear thicker
-          const nonFocal  = e.source === focalId ? e.target : e.source;
-          const nonFocalD = degree[nonFocal] || 1;
-          const weight    = parseFloat((0.8 + Math.log(1 + nonFocalD) * 0.55).toFixed(2));
+          const isD2edge = d2.has(e.source) || d2.has(e.target);
+          const rawW     = e.size || 1;
+          // Scale width: 0.8 px (weight=1) → ~3.5 px (weight=59)
+          const visWidth = parseFloat(Math.max(0.8, Math.log(1 + rawW) * 0.9).toFixed(2));
           return {
             group: 'edges',
             data: { id: e.id, source: e.source, target: e.target,
-                    depth: isD2edge ? '2' : '1', weight }
+                    depth: isD2edge ? '2' : '1', visWidth }
           };
         });
 
-      return { nodeEls, edgeEls, d1, d2, focalId };
+      return { nodeEls, edgeEls, d1, d2 };
     }
 
-    /* ── Build concentric layout options ──────────────────────── */
-    function makeLayout(focalId, d1, d2) {
-      return {
-        name: 'concentric',
-        // Focal at centre; depth-1 neighbours ordered by global degree
-        // (highly connected hubs → inner ring, niche nodes → outer ring)
-        // Depth-2 nodes always on outermost ring
-        concentric: node => {
-          if (node.id() === focalId) return 1000;
-          if (d2.has(node.id()))     return 1;   // outermost
-          const deg = degree[node.id()] || 0;
-          return 2 + deg;                        // higher degree → closer in
-        },
-        levelWidth: () => 4,   // allow 4 degree-steps per ring
-        minNodeSpacing: 24,
-        padding: 40,
-        animate: true,
-        animationDuration: 380,
-        animationEasing: 'ease-out',
-        fit: true,
-      };
+    /* ── Reset ────────────────────────────────────────────────── */
+    // FIX 1 – prominent reset button in topbar
+    function resetView() {
+      if (cy) { cy.destroy(); cy = null; }
+      currentFocal = null;
+      searchInput.value = '';
+      searchClear.style.display = 'none';
+      acBox.style.display = 'none';
+      document.getElementById('btn-reset').style.display = 'none';
+      document.getElementById('depth-wrap').classList.remove('visible');
+      document.getElementById('empty-state').style.display = 'flex';
+      searchInput.focus();
     }
+    document.getElementById('btn-reset').addEventListener('click', resetView);
 
-    /* ── Render ego network ───────────────────────────────────── */
+    /* ── Render ───────────────────────────────────────────────── */
     function loadEgo(focalId) {
       currentFocal = focalId;
       const depth  = depth2On ? 2 : 1;
       const { nodeEls, edgeEls, d1, d2 } = collectEgo(focalId, depth);
+      const positions = computePositions(focalId, d1, d2);
 
-      // Hide empty state
       document.getElementById('empty-state').style.display = 'none';
       document.getElementById('depth-wrap').classList.add('visible');
+      document.getElementById('btn-reset').style.display = 'inline'; // FIX 1
 
-      // Destroy previous instance
       if (cy) cy.destroy();
 
       cy = cytoscape({
         container:        document.getElementById('cy'),
         elements:         [...nodeEls, ...edgeEls],
         style:            CY_STYLE,
-        layout:           makeLayout(focalId, d1, d2),
+        // FIX 5 – lock node positions; no dragging
+        autoungrabify:    true,
         wheelSensitivity: 0.3,
-        minZoom:          0.3,
+        minZoom:          0.2,
         maxZoom:          6,
+        layout:           { name: 'preset', positions, padding: 60,
+                            animate: true, animationDuration: 320 },
       });
 
-      // Node click → navigate to that ego
+      // FIX 3 – any node click navigates seamlessly to that node's ego
       cy.on('tap', 'node', evt => {
+        evt.stopPropagation();
         const id = evt.target.id();
-        if (id !== currentFocal) {
-          updateSearch(nodeMap[id].label);
-          loadEgo(id);
-        }
-        showInfo(id, d1, d2);
+        updateSearch(nodeMap[id].label);
+        loadEgo(id);
       });
-      cy.on('tap', evt => {
-        if (evt.target === cy) closeInfo();
-      });
-
-      showInfo(focalId, d1, d2);
     }
 
-    /* ── Reload with new depth when toggle changes ────────────── */
     document.getElementById('depth-toggle').addEventListener('change', function () {
       depth2On = this.checked;
       if (currentFocal) loadEgo(currentFocal);
     });
-
-    /* ── Info panel ───────────────────────────────────────────── */
-    function showInfo(nodeId, d1, d2) {
-      const n    = nodeMap[nodeId];
-      const type = n.attributes.type;
-      const deg  = (adj[nodeId] ?? new Set()).size;
-
-      document.getElementById('info-name').textContent  = n.label;
-      document.getElementById('info-type').textContent  = type === 'publisher' ? 'Editore' : 'Autore';
-      document.getElementById('info-degree').textContent =
-        `${deg} connession${deg === 1 ? 'e' : 'i'}`;
-
-      // Group neighbours by type
-      const neighbours = [...(adj[nodeId] ?? [])].map(id => nodeMap[id]);
-      const authors    = neighbours.filter(x => x.attributes.type === 'author')
-                                   .sort((a,b) => a.label.localeCompare(b.label, 'it'));
-      const publishers = neighbours.filter(x => x.attributes.type === 'publisher')
-                                   .sort((a,b) => a.label.localeCompare(b.label, 'it'));
-
-      const list = document.getElementById('info-connections');
-      list.innerHTML = '';
-
-      function addGroup(label, items) {
-        if (!items.length) return;
-        const hdr  = document.createElement('li');
-        hdr.className = 'info-group-label';
-        hdr.textContent = label;
-        hdr.style.cursor = 'default';
-        list.appendChild(hdr);
-        items.forEach(item => {
-          const li = document.createElement('li');
-          li.textContent = item.label;
-          li.addEventListener('click', () => {
-            updateSearch(item.label);
-            loadEgo(item.id);
-          });
-          list.appendChild(li);
-        });
-      }
-
-      addGroup('Autori', authors);
-      addGroup('Editori', publishers);
-
-      document.getElementById('info-panel').style.display = 'block';
-    }
-
-    function closeInfo() {
-      document.getElementById('info-panel').style.display = 'none';
-    }
-    document.getElementById('info-close').addEventListener('click', closeInfo);
 
     /* ── Zoom controls ────────────────────────────────────────── */
     function mid() { return { x: cy.width() / 2, y: cy.height() / 2 }; }
@@ -612,15 +620,14 @@
       if (cy) cy.animate({ zoom: { level: cy.zoom() / 1.4, renderedPosition: mid() }, duration: 200 });
     });
     document.getElementById('zoom-fit').addEventListener('click', () => {
-      if (cy) cy.animate({ fit: { padding: 40 }, duration: 300 });
+      if (cy) cy.animate({ fit: { padding: 50 }, duration: 300 });
     });
 
     /* ── Autocomplete ─────────────────────────────────────────── */
     const searchInput = document.getElementById('search-input');
     const searchClear = document.getElementById('search-clear');
     const acBox       = document.getElementById('autocomplete');
-    let acIndex       = -1;
-    let acItems       = [];
+    let acIndex = -1, acItems = [];
 
     function updateSearch(label) {
       searchInput.value = label;
@@ -630,27 +637,18 @@
 
     function renderAC(query) {
       const q = query.toLowerCase().trim();
-      acBox.innerHTML = '';
-      acIndex = -1;
+      acBox.innerHTML = ''; acIndex = -1;
       if (!q) { acBox.style.display = 'none'; return; }
-
-      acItems = allLabels
-        .filter(x => x.label.toLowerCase().includes(q))
-        .slice(0, 12);
-
+      acItems = allLabels.filter(x => x.label.toLowerCase().includes(q)).slice(0, 12);
       if (!acItems.length) { acBox.style.display = 'none'; return; }
-
       acItems.forEach((item, i) => {
         const div = document.createElement('div');
         div.className = 'ac-item';
         div.innerHTML = `
-          <span class="ac-dot" style="background:${item.type === 'publisher' ? '#2e6fac' : '#800000'}"></span>
+          <span class="ac-dot" style="background:${item.type==='publisher'?'#2e6fac':'#800000'}"></span>
           <span>${item.label}</span>
-          <span class="ac-type">${item.type === 'publisher' ? 'editore' : 'autore'}</span>`;
-        div.addEventListener('mousedown', e => {
-          e.preventDefault();
-          selectItem(i);
-        });
+          <span class="ac-type">${item.type==='publisher'?'editore':'autore'}</span>`;
+        div.addEventListener('mousedown', e => { e.preventDefault(); selectItem(i); });
         acBox.appendChild(div);
       });
       acBox.style.display = 'block';
@@ -663,45 +661,22 @@
       loadEgo(item.id);
     }
 
+    // FIX 2 – clicking into the search field selects all so user can type a new name
+    searchInput.addEventListener('focus', function () { this.select(); });
+
     searchInput.addEventListener('input', function () {
       searchClear.style.display = this.value ? 'block' : 'none';
       renderAC(this.value);
     });
-
     searchInput.addEventListener('keydown', function (e) {
       const items = acBox.querySelectorAll('.ac-item');
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        acIndex = Math.min(acIndex + 1, items.length - 1);
-        items.forEach((el, i) => el.classList.toggle('active', i === acIndex));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        acIndex = Math.max(acIndex - 1, -1);
-        items.forEach((el, i) => el.classList.toggle('active', i === acIndex));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (acIndex >= 0) selectItem(acIndex);
-        else if (acItems.length === 1) selectItem(0);
-      } else if (e.key === 'Escape') {
-        acBox.style.display = 'none';
-      }
+      if (e.key === 'ArrowDown') { e.preventDefault(); acIndex = Math.min(acIndex+1, items.length-1); items.forEach((el,i) => el.classList.toggle('active', i===acIndex)); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); acIndex = Math.max(acIndex-1, -1); items.forEach((el,i) => el.classList.toggle('active', i===acIndex)); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (acIndex >= 0) selectItem(acIndex); else if (acItems.length===1) selectItem(0); }
+      else if (e.key === 'Escape') acBox.style.display = 'none';
     });
-
-    searchInput.addEventListener('blur', () => {
-      setTimeout(() => { acBox.style.display = 'none'; }, 150);
-    });
-
-    searchClear.addEventListener('click', () => {
-      searchInput.value = '';
-      searchClear.style.display = 'none';
-      acBox.style.display = 'none';
-      closeInfo();
-      document.getElementById('depth-wrap').classList.remove('visible');
-      document.getElementById('empty-state').style.display = 'flex';
-      if (cy) { cy.destroy(); cy = null; }
-      currentFocal = null;
-      searchInput.focus();
-    });
+    searchInput.addEventListener('blur', () => setTimeout(() => { acBox.style.display = 'none'; }, 150));
+    searchClear.addEventListener('click', resetView);
 
   })();
   </script>
