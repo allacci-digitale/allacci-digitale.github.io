@@ -593,8 +593,7 @@
         wheelSensitivity: 0.3,
         minZoom:          0.2,
         maxZoom:          6,
-        layout:           { name: 'preset', positions, padding: 60,
-                            animate: true, animationDuration: 320 },
+        layout:           { name: 'preset', positions, padding: 60 },
       });
 
       // FIX 3 – any node click navigates seamlessly to that node's ego
@@ -675,7 +674,12 @@
       else if (e.key === 'Enter') { e.preventDefault(); if (acIndex >= 0) selectItem(acIndex); else if (acItems.length===1) selectItem(0); }
       else if (e.key === 'Escape') acBox.style.display = 'none';
     });
-    searchInput.addEventListener('blur', () => setTimeout(() => { acBox.style.display = 'none'; }, 150));
+    // Only hide autocomplete if focus genuinely left the input —
+    // avoids the race where resetView refocuses the input while the
+    // 150 ms timer from the previous blur is still pending.
+    searchInput.addEventListener('blur', () => setTimeout(() => {
+      if (document.activeElement !== searchInput) acBox.style.display = 'none';
+    }, 150));
     searchClear.addEventListener('click', resetView);
 
   })();
