@@ -364,11 +364,14 @@
       allLabels.push({ label: n.label, id: n.id, type: n.attributes.type });
     });
 
-    // Adjacency list
-    const adj = {};
+    // Adjacency list + global degree
+    const adj    = {};
+    const degree = {};
     raw.edges.forEach(e => {
       (adj[e.source] ??= new Set()).add(e.target);
       (adj[e.target] ??= new Set()).add(e.source);
+      degree[e.source] = (degree[e.source] || 0) + 1;
+      degree[e.target] = (degree[e.target] || 0) + 1;
     });
 
     /* ── State ────────────────────────────────────────────────── */
@@ -413,18 +416,17 @@
       {
         selector: 'edge',
         style: {
-          'width':       1.5,
-          'line-color':  '#ccc',
-          'opacity':     0.7,
+          'width':       'data(weight)',   // thickness encodes hub importance
+          'line-color':  '#bbb',
+          'opacity':     0.75,
           'curve-style': 'straight',
         }
       },
       {
         selector: 'edge[depth="2"]',
         style: {
-          'line-color': '#e0e0e0',
-          'width':      1,
-          'opacity':    0.4,
+          'line-color': '#ddd',
+          'opacity':    0.35,
         }
       },
     ];
@@ -442,10 +444,13 @@
       const nodeSet = new Set([focalId, ...d1, ...d2]);
 
       const nodeEls = [...nodeSet].map(id => {
-        const n   = nodeMap[id];
-        const type = n.attributes.type;
+        const n       = nodeMap[id];
+        const type    = n.attributes.type;
         const isFocal = id === focalId;
         const isD2    = d2.has(id);
+        const deg     = degree[id] || 1;
+        // Focal node: fixed large size; others: scaled by global degree
+        const size    = isFocal ? 30 : Math.round(10 + Math.log(1 + deg) * 5);
         return {
           group: 'nodes',
           data: {
@@ -453,7 +458,8 @@
             label:  n.label,
             type,
             color:  type === 'publisher' ? '#2e6fac' : '#800000',
-            size:   isFocal ? 26 : (isD2 ? 14 : 18),
+            size,
+            degree: deg,
             focal:  isFocal ? true : null,
             depth:  isD2 ? '2' : '1',
           }
@@ -463,10 +469,16 @@
       const edgeEls = raw.edges
         .filter(e => nodeSet.has(e.source) && nodeSet.has(e.target))
         .map(e => {
-          const isD2edge = d2.has(e.source) || d2.has(e.target);
+          const isD2edge  = d2.has(e.source) || d2.has(e.target);
+          // Weight = log of the non-focal endpoint's global degree
+          // → edges to high-degree hubs appear thicker
+          const nonFocal  = e.source === focalId ? e.target : e.source;
+          const nonFocalD = degree[nonFocal] || 1;
+          const weight    = parseFloat((0.8 + Math.log(1 + nonFocalD) * 0.55).toFixed(2));
           return {
             group: 'edges',
-            data: { id: e.id, source: e.source, target: e.target, depth: isD2edge ? '2' : '1' }
+            data: { id: e.id, source: e.source, target: e.target,
+                    depth: isD2edge ? '2' : '1', weight }
           };
         });
 
@@ -477,13 +489,17 @@
     function makeLayout(focalId, d1, d2) {
       return {
         name: 'concentric',
+        // Focal at centre; depth-1 neighbours ordered by global degree
+        // (highly connected hubs → inner ring, niche nodes → outer ring)
+        // Depth-2 nodes always on outermost ring
         concentric: node => {
-          if (node.id() === focalId) return 4;
-          if (d1.has(node.id()))     return 2;
-          return 1;                          // depth-2 outer ring
+          if (node.id() === focalId) return 1000;
+          if (d2.has(node.id()))     return 1;   // outermost
+          const deg = degree[node.id()] || 0;
+          return 2 + deg;                        // higher degree → closer in
         },
-        levelWidth: () => 1,
-        minNodeSpacing: 28,
+        levelWidth: () => 4,   // allow 4 degree-steps per ring
+        minNodeSpacing: 24,
         padding: 40,
         animate: true,
         animationDuration: 380,

@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rete autori–editori (vista completa) — Allacci Digitale</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
-  <!-- cose-bilkent: cluster-aware layout with label non-overlap support -->
-  <script src="https://unpkg.com/cytoscape-cose-bilkent/cytoscape-cose-bilkent.js"></script>
+  <!-- fcose: fast force-directed with cluster separation -->
+  <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+  <script src="https://unpkg.com/cose-base/cose-base.js"></script>
+  <script src="https://unpkg.com/cytoscape-fcose/cytoscape-fcose.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -390,25 +392,24 @@
       maxZoom: 10,
     });
 
-    /* ── Run cose-bilkent layout ──────────────────────────────── */
+    /* ── Run fcose layout ─────────────────────────────────────── */
     const layout = cy.layout({
-      name:                       'cose-bilkent',
-      animate:                    false,
-      quality:                    'default',
-      randomize:                  true,
-      nodeDimensionsIncludeLabels: true,   // prevents label overlap
-      nodeRepulsion:              6500,
-      idealEdgeLength:            80,
-      edgeElasticity:             0.45,
-      nestingFactor:              0.1,
-      gravity:                    0.15,
-      gravityRange:               3.8,
-      numIter:                    2500,
-      tile:                       true,
-      tilingPaddingVertical:      12,
-      tilingPaddingHorizontal:    12,
-      padding:                    40,
-      fit:                        true,
+      name:                        'fcose',
+      animate:                     false,
+      quality:                     'default',
+      randomize:                   true,
+      nodeDimensionsIncludeLabels: true,    // label non-overlap
+      nodeRepulsion:               () => 7500,
+      idealEdgeLength:             () => 70,
+      edgeElasticity:              () => 0.45,
+      gravity:                     0.12,
+      gravityRange:                4.2,
+      numIter:                     2500,
+      tile:                        true,
+      tilingPaddingVertical:       12,
+      tilingPaddingHorizontal:     12,
+      padding:                     40,
+      fit:                         true,
     });
 
     layout.on('layoutstop', () => {
@@ -422,17 +423,19 @@
 
     function highlightEgo(nodeId) {
       selectedId = nodeId;
-      const ego  = cy.getElementById(nodeId);
-      const nbrs = ego.neighborhood('node');
+      const ego   = cy.getElementById(nodeId);
+      const nbrs  = ego.neighborhood('node');
       const edges = ego.connectedEdges();
 
       cy.startBatch();
-      cy.elements().addClass('dimmed')
-                   .removeClass('focal neighbour highlighted');
+      cy.elements().addClass('dimmed').removeClass('focal neighbour highlighted');
       ego.removeClass('dimmed').addClass('focal');
       nbrs.removeClass('dimmed').addClass('neighbour');
       edges.removeClass('dimmed').addClass('highlighted');
       cy.endBatch();
+
+      // Pan/zoom to keep focal + its neighbours in view
+      cy.animate({ fit: { eles: ego.union(nbrs), padding: 80 }, duration: 380 });
 
       showInfo(nodeId);
       document.getElementById('btn-reset').style.display = 'block';
@@ -445,9 +448,11 @@
       cy.endBatch();
       document.getElementById('info-panel').style.display = 'none';
       document.getElementById('btn-reset').style.display = 'none';
+      cy.animate({ fit: { padding: 40 }, duration: 380 });
     }
 
-    cy.on('tap', 'node', evt => highlightEgo(evt.target.id()));
+    // Clicking a node always shifts focus to it; clicking background resets
+    cy.on('tap', 'node', evt => { evt.stopPropagation(); highlightEgo(evt.target.id()); });
     cy.on('tap', evt => { if (evt.target === cy) clearHighlight(); });
 
     /* ── Info panel ───────────────────────────────────────────── */
