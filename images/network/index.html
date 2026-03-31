@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rete autori–editori — Allacci Digitale</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+  <script src="https://unpkg.com/cose-base/cose-base.js"></script>
+  <script src="https://unpkg.com/cytoscape-fcose/cytoscape-fcose.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,53 +21,23 @@
       flex-direction: column;
     }
 
-    /* ── Canvas ───────────────────────────────────────────────── */
-    #cy {
-      flex: 1;
-      width: 100%;
-      position: relative;
-    }
-
-    /* ── Empty state ──────────────────────────────────────────── */
-    #empty-state {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      pointer-events: none;
-      z-index: 5;
-    }
-    #empty-state .hint-icon {
-      font-size: 2em;
-      opacity: 0.25;
-    }
-    #empty-state p {
-      font-size: 0.82em;
-      color: #bbb;
-      letter-spacing: 0.02em;
-    }
-
     /* ── Top bar ──────────────────────────────────────────────── */
     #topbar {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
+      padding: 7px 12px;
       background: #fff;
       border-bottom: 1px solid #eee;
-      position: relative;
-      z-index: 30;
       flex-shrink: 0;
+      z-index: 30;
     }
 
     /* ── Search ───────────────────────────────────────────────── */
     #search-wrap {
       position: relative;
       flex: 1;
-      max-width: 320px;
+      max-width: 300px;
     }
     #search-input {
       width: 100%;
@@ -73,34 +46,27 @@
       border-radius: 6px;
       color: #333;
       font-size: 0.83em;
-      padding: 6px 30px 6px 10px;
+      padding: 6px 28px 6px 10px;
       outline: none;
       transition: border-color 0.2s, background 0.2s;
     }
     #search-input:focus { border-color: #800000; background: #fff; }
     #search-input::placeholder { color: #bbb; }
+    #search-input:disabled { opacity: 0.4; cursor: not-allowed; }
     #search-clear {
       position: absolute;
-      right: 7px;
-      top: 50%;
+      right: 7px; top: 50%;
       transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: #bbb;
-      cursor: pointer;
-      display: none;
-      font-size: 0.85em;
-      line-height: 1;
-      padding: 2px;
+      background: none; border: none;
+      color: #bbb; cursor: pointer;
+      display: none; font-size: 0.85em; line-height: 1; padding: 2px;
     }
     #search-clear:hover { color: #800000; }
 
-    /* ── Autocomplete dropdown ────────────────────────────────── */
+    /* ── Autocomplete ─────────────────────────────────────────── */
     #autocomplete {
       position: absolute;
-      top: calc(100% + 4px);
-      left: 0;
-      right: 0;
+      top: calc(100% + 4px); left: 0; right: 0;
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 6px;
@@ -113,63 +79,15 @@
       padding: 7px 12px;
       font-size: 0.82em;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: flex; align-items: center; gap: 8px;
       border-bottom: 1px solid #f5f5f5;
     }
     .ac-item:last-child { border-bottom: none; }
     .ac-item:hover, .ac-item.active { background: #f9f2f2; }
-    .ac-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .ac-type {
-      color: #bbb;
-      font-size: 0.85em;
-      margin-left: auto;
-      flex-shrink: 0;
-    }
+    .ac-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .ac-type { color: #bbb; font-size: 0.85em; margin-left: auto; flex-shrink: 0; }
 
-    /* ── Depth toggle ─────────────────────────────────────────── */
-    #depth-wrap {
-      display: none;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.78em;
-      color: #666;
-      white-space: nowrap;
-    }
-    #depth-wrap.visible { display: flex; }
-    #depth-toggle {
-      appearance: none;
-      width: 30px;
-      height: 16px;
-      background: #ddd;
-      border-radius: 8px;
-      cursor: pointer;
-      position: relative;
-      transition: background 0.2s;
-      flex-shrink: 0;
-    }
-    #depth-toggle::after {
-      content: '';
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      background: #fff;
-      border-radius: 50%;
-      top: 2px;
-      left: 2px;
-      transition: transform 0.2s;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    }
-    #depth-toggle:checked { background: #800000; }
-    #depth-toggle:checked::after { transform: translateX(14px); }
-
-    /* ── "Open full network" button ───────────────────────────── */
+    /* ── Reset button ─────────────────────────────────────────── */
     #btn-reset {
       display: none;
       font-size: 0.75em;
@@ -184,7 +102,9 @@
       flex-shrink: 0;
     }
     #btn-reset:hover { background: #800000; color: #fff; border-color: #800000; }
-    #btn-full {
+
+    /* ── Full-screen link ─────────────────────────────────────── */
+    #btn-fullscreen {
       margin-left: auto;
       font-size: 0.75em;
       color: #999;
@@ -193,446 +113,283 @@
       border: 1px solid #e0e0e0;
       border-radius: 5px;
       white-space: nowrap;
-      transition: color 0.15s, border-color 0.15s;
       flex-shrink: 0;
+      transition: color 0.15s, border-color 0.15s;
     }
-    #btn-full:hover { color: #800000; border-color: #800000; }
+    #btn-fullscreen:hover { color: #800000; border-color: #800000; }
 
-    /* ── Zoom buttons ─────────────────────────────────────────── */
+    /* ── Canvas ───────────────────────────────────────────────── */
+    #cy { flex: 1; width: 100%; position: relative; }
+
+    /* ── Spinner ──────────────────────────────────────────────── */
+    #loader {
+      position: absolute; inset: 0;
+      background: #fff;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 50; gap: 14px;
+    }
+    .spinner {
+      width: 34px; height: 34px;
+      border: 3px solid #eee;
+      border-top-color: #800000;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loader p { font-size: 0.78em; color: #bbb; letter-spacing: 0.03em; }
+
+    /* ── Zoom controls ────────────────────────────────────────── */
     #zoom-controls {
-      position: absolute;
-      bottom: 14px;
-      right: 14px;
-      z-index: 20;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      position: absolute; bottom: 14px; right: 14px;
+      z-index: 20; display: flex; flex-direction: column; gap: 4px;
     }
     .zoom-btn {
-      background: rgba(255,255,255,0.95);
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      color: #555;
-      cursor: pointer;
-      font-size: 1em;
-      line-height: 1;
-      padding: 6px 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ccc; border-radius: 6px;
+      color: #555; cursor: pointer;
+      font-size: 0.9em; line-height: 1; padding: 7px 11px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
       transition: background 0.15s, color 0.15s;
     }
     .zoom-btn:hover { background: #800000; border-color: #800000; color: #fff; }
 
     /* ── Legend ───────────────────────────────────────────────── */
     #legend {
-      position: absolute;
-      bottom: 14px;
-      left: 14px;
+      position: absolute; bottom: 14px; left: 14px;
       z-index: 20;
-      background: rgba(255,255,255,0.95);
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ccc; border-radius: 6px;
       padding: 8px 12px;
       font-size: 0.74em;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex; flex-direction: column; gap: 5px;
     }
     .legend-row { display: flex; align-items: center; gap: 7px; color: #555; }
     .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-
-    /* ── Info panel ───────────────────────────────────────────── */
-    #info-panel {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      z-index: 20;
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-left: 3px solid #800000;
-      border-radius: 6px;
-      padding: 12px 14px;
-      width: 220px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      display: none;
-    }
-    #info-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 4px;
-    }
-    #info-name { font-weight: 600; font-size: 0.92em; color: #111; flex: 1; line-height: 1.3; }
-    #info-close {
-      background: none; border: none; color: #bbb; cursor: pointer;
-      font-size: 0.9em; line-height: 1; padding: 0; margin-left: 6px;
-      flex-shrink: 0;
-    }
-    #info-close:hover { color: #555; }
-    #info-type {
-      font-size: 0.68em;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: #999;
-      margin-bottom: 8px;
-    }
-    #info-degree { font-size: 0.76em; color: #aaa; margin-bottom: 8px; }
-    #info-groups { font-size: 0.76em; }
-    .info-group-label {
-      font-weight: 600;
-      color: #800000;
-      margin: 6px 0 3px;
-      font-size: 0.9em;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-    #info-connections {
-      list-style: none;
-      max-height: 160px;
-      overflow-y: auto;
-    }
-    #info-connections::-webkit-scrollbar { width: 3px; }
-    #info-connections::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
-    #info-connections li {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      color: #555;
-      padding: 3px 0;
-      border-bottom: 1px solid #f0f0f0;
-      cursor: pointer;
-      transition: color 0.12s;
-    }
-    #info-connections li:last-child { border-bottom: none; }
-    #info-connections li:hover { color: #800000; }
-    #info-connections li:hover .item-weight { color: #c06060; }
-    .item-weight {
-      margin-left: auto;
-      font-size: 0.8em;
-      color: #bbb;
-      font-variant-numeric: tabular-nums;
-      flex-shrink: 0;
-    }
   </style>
 </head>
 <body>
 
-  <!-- Top bar: search + depth toggle + open-full button -->
   <div id="topbar">
     <div id="search-wrap">
-      <input id="search-input" type="text" placeholder="Cerca autore o editore…" autocomplete="off" spellcheck="false">
-      <button id="search-clear" title="Cancella">✕</button>
+      <input id="search-input" type="text" placeholder="Cerca autore o editore…"
+             autocomplete="off" spellcheck="false" disabled>
+      <button id="search-clear">✕</button>
       <div id="autocomplete"></div>
     </div>
 
-    <label id="depth-wrap" title="Includi le connessioni dei connessi">
-      <input type="checkbox" id="depth-toggle">
-      <span>2° grado</span>
-    </label>
+    <button id="btn-reset">↺ Reset</button>
 
-    <button id="btn-reset" title="Torna alla ricerca">↺ Reset</button>
-
-    <a id="btn-full" href="full.html" target="_blank">Rete completa ↗</a>
+    <a id="btn-fullscreen" href="index.html" target="_blank">↗ Schermo intero</a>
   </div>
 
-  <!-- Graph canvas -->
   <div id="cy">
-    <div id="empty-state">
-      <div class="hint-icon">⬤—⬤</div>
-      <p>Cerca un autore o editore per visualizzare la sua rete</p>
+    <div id="loader">
+      <div class="spinner"></div>
+      <p>Calcolo del layout in corso…</p>
     </div>
 
-    <!-- Zoom controls -->
     <div id="zoom-controls">
-      <button class="zoom-btn" id="zoom-in"  title="Ingrandisci">+</button>
-      <button class="zoom-btn" id="zoom-out" title="Riduci">−</button>
-      <button class="zoom-btn" id="zoom-fit" title="Adatta">⌖</button>
+      <button class="zoom-btn" id="zoom-in">+</button>
+      <button class="zoom-btn" id="zoom-out">−</button>
+      <button class="zoom-btn" id="zoom-fit">⌖</button>
     </div>
 
-    <!-- Legend -->
     <div id="legend">
       <div class="legend-row">
-        <div class="legend-dot" style="background:#800000"></div>
-        <span>Autore</span>
+        <div class="legend-dot" style="background:#800000"></div><span>Autore</span>
       </div>
       <div class="legend-row">
-        <div class="legend-dot" style="background:#2e6fac"></div>
-        <span>Editore</span>
+        <div class="legend-dot" style="background:#2e6fac"></div><span>Editore</span>
       </div>
     </div>
-
   </div>
 
   <script>
   (async () => {
 
-    /* ── Load & index ─────────────────────────────────────────── */
+    /* ── Load data ────────────────────────────────────────────── */
     const raw = await fetch('data.json').then(r => r.json());
-    // FIX 2 – pre-focus selects all text so user can type a new name immediately
 
-    const nodeMap  = {};   // id → raw node
-    const allLabels = [];  // for autocomplete
+    const nodeMap   = {};
+    const allLabels = [];
+    const degree    = {};
+
+    raw.edges.forEach(e => {
+      degree[e.source] = (degree[e.source] || 0) + 1;
+      degree[e.target] = (degree[e.target] || 0) + 1;
+    });
 
     raw.nodes.forEach(n => {
       nodeMap[n.id] = n;
       allLabels.push({ label: n.label, id: n.id, type: n.attributes.type });
     });
 
-    // Adjacency, global degree, and co-publication weights (edge.size)
-    const adj    = {};   // id → Set<id>
-    const degree = {};   // id → number of connections
-    const edgeW  = {};   // `${a}:${b}` → co-publication count
-
-    raw.edges.forEach(e => {
-      (adj[e.source] ??= new Set()).add(e.target);
-      (adj[e.target] ??= new Set()).add(e.source);
-      degree[e.source] = (degree[e.source] || 0) + 1;
-      degree[e.target] = (degree[e.target] || 0) + 1;
-      const w = e.size || 1;
-      edgeW[`${e.source}:${e.target}`] = w;
-      edgeW[`${e.target}:${e.source}`] = w;
-    });
-
-    /* ── State ────────────────────────────────────────────────── */
-    let cy           = null;
-    let currentFocal = null;
-    let depth2On     = false;
-
-    /* ── Cytoscape stylesheet ─────────────────────────────────── */
-    const CY_STYLE = [
-      {
-        selector: 'node',
-        style: {
-          'background-color':   'data(color)',
-          'width':              'data(size)',
-          'height':             'data(size)',
-          'label':              'data(label)',
-          'font-size':          11,
-          'font-family':        'Segoe UI, system-ui, sans-serif',
-          'color':              '#222',
-          'text-outline-color': '#fff',
-          'text-outline-width': 2.5,
-          'text-valign':        'bottom',
-          'text-halign':        'center',
-          'text-margin-y':      4,
-        }
-      },
-      {
-        selector: 'node[?focal]',
-        style: {
-          'border-width': 3,
-          'border-color': '#800000',
-          'font-weight':  'bold',
-          'font-size':    13,
-        }
-      },
-      {
-        selector: 'node[depth="2"]',
-        style: { 'opacity': 0.55 }
-      },
-      {
-        selector: 'edge',
-        style: {
-          'width':       'data(visWidth)',  // encodes co-publication count
-          'line-color':  '#aaa',
-          'opacity':     0.8,
-          'curve-style': 'straight',
-        }
-      },
-      {
-        selector: 'edge[depth="2"]',
-        style: { 'line-color': '#ddd', 'opacity': 0.3 }
-      },
-    ];
-
-    /* ── Bipartite preset positions ───────────────────────────── */
-    // Focal pinned at (0,0).
-    // Direct neighbours (d1) placed in a column left or right of focal
-    // depending on type; x-distance from focal encodes co-pub weight
-    // (closer = more co-publications). Depth-2 nodes go further out.
-    function computePositions(focalId, d1, d2) {
-      const focalType = nodeMap[focalId].attributes.type;
-      const isAuthor  = focalType === 'author';
-      const positions = {};
-      positions[focalId] = { x: 0, y: 0 };
-
-      // D1 array enriched with weight-to-focal, sorted heaviest first
-      const d1arr = [...d1].map(id => ({
-        id,
-        type:   nodeMap[id].attributes.type,
-        weight: edgeW[`${focalId}:${id}`] || 1,
-      })).sort((a, b) => b.weight - a.weight);
-
-      const maxW = Math.max(...d1arr.map(n => n.weight), 1);
-
-      // Bipartite: opposite-type connections go on the "main" side
-      // (publishers right of an author; authors left of a publisher)
-      const mainSide  = isAuthor ? 1 : -1;
-      const crossSide = -mainSide;
-
-      const d1main  = d1arr.filter(n => n.type !== focalType);
-      const d1cross = d1arr.filter(n => n.type === focalType); // rare
-
-      function placeWeighted(nodes, sign) {
-        if (!nodes.length) return;
-        const spacing  = Math.min(58, Math.max(26, 420 / nodes.length));
-        const totalH   = (nodes.length - 1) * spacing;
-        nodes.forEach((n, i) => {
-          // Heavier → x closer (160); lighter → x further (290)
-          const wNorm = n.weight / maxW;
-          const x     = sign * (160 + (1 - wNorm) * 130);
-          const y     = -totalH / 2 + i * spacing;
-          positions[n.id] = { x, y };
-        });
-      }
-
-      placeWeighted(d1main,  mainSide);
-      placeWeighted(d1cross, crossSide);
-
-      // D2 nodes: same bipartite logic but further out, no weight
-      const d2arr   = [...d2].map(id => ({ id, type: nodeMap[id].attributes.type }));
-      const d2main  = d2arr.filter(n => n.type !== focalType);
-      const d2cross = d2arr.filter(n => n.type === focalType);
-
-      function placeSimple(nodes, sign, baseX) {
-        if (!nodes.length) return;
-        const spacing = Math.min(52, Math.max(22, 400 / nodes.length));
-        const totalH  = (nodes.length - 1) * spacing;
-        nodes.forEach((n, i) => {
-          positions[n.id] = { x: sign * baseX, y: -totalH / 2 + i * spacing };
-        });
-      }
-
-      placeSimple(d2main,  mainSide,  360);
-      placeSimple(d2cross, crossSide, 360);
-
-      return positions;
-    }
-
-    /* ── Build element arrays ─────────────────────────────────── */
-    function collectEgo(focalId, depth) {
-      const d1 = new Set(adj[focalId] ?? []);
-      const d2 = new Set();
-      if (depth === 2) {
-        d1.forEach(id => (adj[id] ?? new Set()).forEach(id2 => {
-          if (id2 !== focalId && !d1.has(id2)) d2.add(id2);
-        }));
-      }
-      const nodeSet = new Set([focalId, ...d1, ...d2]);
-
-      const nodeEls = [...nodeSet].map(id => {
-        const n       = nodeMap[id];
-        const type    = n.attributes.type;
-        const isFocal = id === focalId;
-        const isD2    = d2.has(id);
-        const deg     = degree[id] || 1;
-        const size    = isFocal ? 30 : Math.round(10 + Math.log(1 + deg) * 5);
+    /* ── Build elements ───────────────────────────────────────── */
+    const elements = [
+      ...raw.nodes.map(n => {
+        const deg  = degree[n.id] || 0;
+        const size = Math.round(8 + Math.log(1 + deg) * 7);
         return {
           group: 'nodes',
           data: {
-            id, label: n.label, type,
-            color:  type === 'publisher' ? '#2e6fac' : '#800000',
-            size, degree: deg,
-            focal: isFocal ? true : null,
-            depth: isD2 ? '2' : '1',
+            id:     n.id,
+            label:  n.label,
+            type:   n.attributes.type,
+            color:  n.attributes.type === 'publisher' ? '#2e6fac' : '#800000',
+            size,
+            degree: deg,
           }
         };
-      });
+      }),
+      ...raw.edges.map(e => {
+        const w        = e.size || 1;
+        const visWidth = parseFloat(Math.max(0.5, Math.log(1 + w) * 0.7).toFixed(2));
+        return {
+          group: 'edges',
+          data: { id: e.id, source: e.source, target: e.target, visWidth }
+        };
+      }),
+    ];
 
-      const edgeEls = raw.edges
-        .filter(e => nodeSet.has(e.source) && nodeSet.has(e.target))
-        .map(e => {
-          const isD2edge = d2.has(e.source) || d2.has(e.target);
-          const rawW     = e.size || 1;
-          // Scale width: 0.8 px (weight=1) → ~3.5 px (weight=59)
-          const visWidth = parseFloat(Math.max(0.8, Math.log(1 + rawW) * 0.9).toFixed(2));
-          return {
-            group: 'edges',
-            data: { id: e.id, source: e.source, target: e.target,
-                    depth: isD2edge ? '2' : '1', visWidth }
-          };
-        });
+    /* ── Init Cytoscape ───────────────────────────────────────── */
+    const cy = cytoscape({
+      container:        document.getElementById('cy'),
+      elements,
+      autoungrabify:    true,
+      wheelSensitivity: 0.3,
+      minZoom:          0.04,
+      maxZoom:          10,
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color':     'data(color)',
+            'width':                'data(size)',
+            'height':               'data(size)',
+            'label':                'data(label)',
+            'font-size':            10,
+            'font-family':          'Segoe UI, system-ui, sans-serif',
+            'color':                '#333',
+            'text-outline-color':   '#fff',
+            'text-outline-width':   2,
+            'text-valign':          'bottom',
+            'text-halign':          'center',
+            'text-margin-y':        3,
+            'min-zoomed-font-size': 14,   // hidden at overview zoom
+          }
+        },
+        {
+          // Important nodes: always show label
+          selector: 'node[degree >= 5]',
+          style: { 'min-zoomed-font-size': 0, 'font-size': 11, 'font-weight': '600' }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width':       'data(visWidth)',
+            'line-color':  '#ddd',
+            'opacity':     0.6,
+            'curve-style': 'straight',
+          }
+        },
+        /* ── Highlight states ── */
+        {
+          selector: '.dimmed',
+          style: { 'opacity': 0.05 }
+        },
+        {
+          selector: 'node.focal',
+          style: {
+            'opacity':      1,
+            'border-width': 3,
+            'border-color': '#800000',
+          }
+        },
+        {
+          selector: 'node.neighbour',
+          style: { 'opacity': 1 }
+        },
+        {
+          selector: 'edge.highlighted',
+          style: { 'line-color': '#999', 'opacity': 0.85, 'width': 2 }
+        },
+      ],
+    });
 
-      return { nodeEls, edgeEls, d1, d2 };
+    /* ── Layout ───────────────────────────────────────────────── */
+    cy.layout({
+      name:                        'fcose',
+      animate:                     false,
+      quality:                     'default',
+      randomize:                   true,
+      nodeDimensionsIncludeLabels: true,
+      nodeRepulsion:               () => 7500,
+      idealEdgeLength:             () => 70,
+      edgeElasticity:              () => 0.45,
+      gravity:                     0.12,
+      gravityRange:                4.2,
+      numIter:                     2500,
+      tile:                        true,
+      tilingPaddingVertical:       12,
+      tilingPaddingHorizontal:     12,
+      padding:                     40,
+      fit:                         true,
+    }).on('layoutstop', () => {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('search-input').disabled = false;
+      document.getElementById('search-input').focus();
+    }).run();
+
+    /* ── Highlight ────────────────────────────────────────────── */
+    function highlight(nodeId) {
+      const focal = cy.getElementById(nodeId);
+      const nbrs  = focal.neighborhood('node');
+      const edges = focal.connectedEdges();
+
+      cy.startBatch();
+      cy.elements().addClass('dimmed').removeClass('focal neighbour highlighted');
+      focal.removeClass('dimmed').addClass('focal');
+      nbrs.removeClass('dimmed').addClass('neighbour');
+      edges.removeClass('dimmed').addClass('highlighted');
+      cy.endBatch();
+
+      cy.animate({ fit: { eles: focal.union(nbrs), padding: 80 }, duration: 350 });
+      document.getElementById('btn-reset').style.display = 'inline';
     }
 
-    /* ── Reset ────────────────────────────────────────────────── */
-    // FIX 1 – prominent reset button in topbar
-    function resetView() {
-      if (cy) { cy.destroy(); cy = null; }
-      currentFocal = null;
+    function clearHighlight() {
+      cy.startBatch();
+      cy.elements().removeClass('dimmed focal neighbour highlighted');
+      cy.endBatch();
+      cy.animate({ fit: { padding: 40 }, duration: 350 });
+      document.getElementById('btn-reset').style.display = 'none';
       searchInput.value = '';
       searchClear.style.display = 'none';
       acBox.style.display = 'none';
-      document.getElementById('btn-reset').style.display = 'none';
-      document.getElementById('depth-wrap').classList.remove('visible');
-      document.getElementById('empty-state').style.display = 'flex';
-      searchInput.focus();
-    }
-    document.getElementById('btn-reset').addEventListener('click', resetView);
-
-    /* ── Render ───────────────────────────────────────────────── */
-    function loadEgo(focalId) {
-      currentFocal = focalId;
-      const depth  = depth2On ? 2 : 1;
-      const { nodeEls, edgeEls, d1, d2 } = collectEgo(focalId, depth);
-      const positions = computePositions(focalId, d1, d2);
-
-      document.getElementById('empty-state').style.display = 'none';
-      document.getElementById('depth-wrap').classList.add('visible');
-      document.getElementById('btn-reset').style.display = 'inline'; // FIX 1
-
-      if (cy) cy.destroy();
-
-      cy = cytoscape({
-        container:        document.getElementById('cy'),
-        elements:         [...nodeEls, ...edgeEls],
-        style:            CY_STYLE,
-        // FIX 5 – lock node positions; no dragging
-        autoungrabify:    true,
-        wheelSensitivity: 0.3,
-        minZoom:          0.2,
-        maxZoom:          6,
-        layout:           { name: 'preset', positions, padding: 60 },
-      });
-
-      // FIX 3 – any node click navigates seamlessly to that node's ego
-      cy.on('tap', 'node', evt => {
-        evt.stopPropagation();
-        const id = evt.target.id();
-        updateSearch(nodeMap[id].label);
-        loadEgo(id);
-      });
     }
 
-    document.getElementById('depth-toggle').addEventListener('change', function () {
-      depth2On = this.checked;
-      if (currentFocal) loadEgo(currentFocal);
-    });
+    /* ── Events (registered once, never re-registered) ────────── */
+    cy.on('tap', 'node', evt => { highlight(evt.target.id()); });
+    cy.on('tap', evt => { if (evt.target === cy) clearHighlight(); });
 
-    /* ── Zoom controls ────────────────────────────────────────── */
+    document.getElementById('btn-reset').addEventListener('click', clearHighlight);
+
+    /* ── Zoom ─────────────────────────────────────────────────── */
     function mid() { return { x: cy.width() / 2, y: cy.height() / 2 }; }
-    document.getElementById('zoom-in').addEventListener('click', () => {
-      if (cy) cy.animate({ zoom: { level: cy.zoom() * 1.4, renderedPosition: mid() }, duration: 200 });
-    });
-    document.getElementById('zoom-out').addEventListener('click', () => {
-      if (cy) cy.animate({ zoom: { level: cy.zoom() / 1.4, renderedPosition: mid() }, duration: 200 });
-    });
-    document.getElementById('zoom-fit').addEventListener('click', () => {
-      if (cy) cy.animate({ fit: { padding: 50 }, duration: 300 });
-    });
+    document.getElementById('zoom-in').addEventListener('click',
+      () => cy.animate({ zoom: { level: cy.zoom() * 1.4, renderedPosition: mid() }, duration: 200 }));
+    document.getElementById('zoom-out').addEventListener('click',
+      () => cy.animate({ zoom: { level: cy.zoom() / 1.4, renderedPosition: mid() }, duration: 200 }));
+    document.getElementById('zoom-fit').addEventListener('click',
+      () => cy.animate({ fit: { padding: 40 }, duration: 300 }));
 
     /* ── Autocomplete ─────────────────────────────────────────── */
     const searchInput = document.getElementById('search-input');
     const searchClear = document.getElementById('search-clear');
     const acBox       = document.getElementById('autocomplete');
     let acIndex = -1, acItems = [];
-
-    function updateSearch(label) {
-      searchInput.value = label;
-      searchClear.style.display = 'block';
-      acBox.style.display = 'none';
-    }
 
     function renderAC(query) {
       const q = query.toLowerCase().trim();
@@ -656,31 +413,47 @@
     function selectItem(i) {
       const item = acItems[i];
       if (!item) return;
-      updateSearch(item.label);
-      loadEgo(item.id);
+      searchInput.value = item.label;
+      searchClear.style.display = 'block';
+      acBox.style.display = 'none';
+      highlight(item.id);
     }
 
-    // FIX 2 – clicking into the search field selects all so user can type a new name
+    // Selecting all on focus lets user type a new name without clearing first
     searchInput.addEventListener('focus', function () { this.select(); });
 
     searchInput.addEventListener('input', function () {
       searchClear.style.display = this.value ? 'block' : 'none';
       renderAC(this.value);
     });
+
     searchInput.addEventListener('keydown', function (e) {
       const items = acBox.querySelectorAll('.ac-item');
-      if (e.key === 'ArrowDown') { e.preventDefault(); acIndex = Math.min(acIndex+1, items.length-1); items.forEach((el,i) => el.classList.toggle('active', i===acIndex)); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); acIndex = Math.max(acIndex-1, -1); items.forEach((el,i) => el.classList.toggle('active', i===acIndex)); }
-      else if (e.key === 'Enter') { e.preventDefault(); if (acIndex >= 0) selectItem(acIndex); else if (acItems.length===1) selectItem(0); }
-      else if (e.key === 'Escape') acBox.style.display = 'none';
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        acIndex = Math.min(acIndex + 1, items.length - 1);
+        items.forEach((el, i) => el.classList.toggle('active', i === acIndex));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        acIndex = Math.max(acIndex - 1, -1);
+        items.forEach((el, i) => el.classList.toggle('active', i === acIndex));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (acIndex >= 0) selectItem(acIndex);
+        else if (acItems.length === 1) selectItem(0);
+      } else if (e.key === 'Escape') {
+        acBox.style.display = 'none';
+      }
     });
-    // Only hide autocomplete if focus genuinely left the input —
-    // avoids the race where resetView refocuses the input while the
-    // 150 ms timer from the previous blur is still pending.
-    searchInput.addEventListener('blur', () => setTimeout(() => {
-      if (document.activeElement !== searchInput) acBox.style.display = 'none';
-    }, 150));
-    searchClear.addEventListener('click', resetView);
+
+    // Only hide AC if focus truly left the input (avoids post-reset race condition)
+    searchInput.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (document.activeElement !== searchInput) acBox.style.display = 'none';
+      }, 150);
+    });
+
+    searchClear.addEventListener('click', clearHighlight);
 
   })();
   </script>
