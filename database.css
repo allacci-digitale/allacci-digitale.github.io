@@ -100,7 +100,7 @@ nav a:focus {
 /* Main Content */
 main {
     flex: 1;
-    max-width: 800px;
+    max-width: 1200px;
     width: 100%;
     margin: 20px auto;
     padding: 20px;
@@ -356,6 +356,7 @@ input[type="checkbox"] {
 .sticky-table-container td:nth-child(1) {
     font-size: 0.9em;
     color: #555;
+    min-width: 420px;
 }
 
 .sticky-table-container th:nth-child(2),
