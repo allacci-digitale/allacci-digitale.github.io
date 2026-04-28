@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rete autori–editori — Allacci Digitale</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
-  <script src="https://unpkg.com/layout-base/layout-base.js"></script>
-  <script src="https://unpkg.com/cose-base/cose-base.js"></script>
-  <script src="https://unpkg.com/cytoscape-fcose/cytoscape-fcose.js"></script>
+  <script src="data.js"></script>
+  <script src="positions.js"></script>
+  <script src="edge_titles.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -154,6 +154,24 @@
     }
     .zoom-btn:hover { background: #800000; border-color: #800000; color: #fff; }
 
+    /* ── Tooltip ─────────────────────────────────────────────── */
+    #tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.76em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      display: none;
+      z-index: 25;
+      max-width: 200px;
+      line-height: 1.5;
+    }
+    #tooltip strong { color: #222; }
+    #tooltip span   { color: #888; }
+
     /* ── Legend ───────────────────────────────────────────────── */
     #legend {
       position: absolute; bottom: 14px; left: 14px;
@@ -185,6 +203,7 @@
   </div>
 
   <div id="cy">
+    <div id="tooltip"></div>
     <div id="loader">
       <div class="spinner"></div>
       <p>Calcolo del layout in corso…</p>
@@ -207,10 +226,11 @@
   </div>
 
   <script>
-  (async () => {
+  (() => {
 
-    /* ── Load data ────────────────────────────────────────────── */
-    const raw = await fetch('data.json').then(r => r.json());
+    /* ── Load data (pre-loaded via <script> tags, works on file://) */
+    const raw       = window._NET_DATA;
+    const positions = window._NET_POS;
 
     const nodeMap   = {};
     const allLabels = [];
@@ -230,7 +250,7 @@
     const elements = [
       ...raw.nodes.map(n => {
         const deg  = degree[n.id] || 0;
-        const size = Math.round(8 + Math.log(1 + deg) * 7);
+        const size = Math.round(16 + Math.log(1 + deg) * 8);  // log scale, min 16
         return {
           group: 'nodes',
           data: {
@@ -245,7 +265,7 @@
       }),
       ...raw.edges.map(e => {
         const w        = e.size || 1;
-        const visWidth = parseFloat(Math.max(0.5, Math.log(1 + w) * 0.7).toFixed(2));
+        const visWidth = parseFloat(Math.max(2.5, Math.log(1 + w) * 2.5).toFixed(2));
         return {
           group: 'edges',
           data: { id: e.id, source: e.source, target: e.target, visWidth }
@@ -278,26 +298,31 @@
             'text-halign':          'center',
             'text-margin-y':        3,
             'min-zoomed-font-size': 14,   // hidden at overview zoom
+            'cursor':               'pointer',
           }
         },
         {
-          // Important nodes: always show label
           selector: 'node[degree >= 5]',
-          style: { 'min-zoomed-font-size': 0, 'font-size': 11, 'font-weight': '600' }
+          style: { 'font-size': 11, 'font-weight': '600' }
+        },
+        {
+          // Collision-hidden labels
+          selector: 'node.hide-label',
+          style: { 'label': '' }
         },
         {
           selector: 'edge',
           style: {
             'width':       'data(visWidth)',
-            'line-color':  '#ddd',
-            'opacity':     0.6,
+            'line-color':  '#666',
+            'opacity':     1,
             'curve-style': 'straight',
           }
         },
         /* ── Highlight states ── */
         {
           selector: '.dimmed',
-          style: { 'opacity': 0.05 }
+          style: { 'opacity': 0.08 }
         },
         {
           selector: 'node.focal',
@@ -313,37 +338,134 @@
         },
         {
           selector: 'edge.highlighted',
-          style: { 'line-color': '#999', 'opacity': 0.85, 'width': 2 }
+          style: {
+            'line-color':               '#800000',
+            'opacity':                  1,
+            'width':                    'data(visWidth)',
+            'label':                    'data(edgeLabel)',
+            'font-size':                9,
+            'color':                    '#444',
+            'text-outline-color':       '#fff',
+            'text-outline-width':       2.5,
+            'text-rotation':            'autorotate',
+            'text-margin-y':            -7,
+            'text-background-color':    '#fff',
+            'text-background-opacity':  0.75,
+            'text-background-padding':  '2px',
+          }
         },
       ],
     });
 
-    /* ── Layout ───────────────────────────────────────────────── */
+    /* ── Label collision detection (defined BEFORE layout so layoutstop can call it) */
+    function updateLabels() {
+      // Sort by degree each call — high-degree nodes keep their labels
+      const byPriority = cy.nodes().sort((a, b) => b.data('degree') - a.data('degree')).toArray();
+      const shown  = [];
+      const CHAR_W = 6.2;
+      const PAD    = 3;
+
+      cy.startBatch();
+      byPriority.forEach(node => {
+        if (node.hasClass('dimmed')) { node.addClass('hide-label'); return; }
+
+        const rp  = node.renderedPosition();
+        const rh  = node.renderedBoundingBox().h;
+        const fs  = node.data('degree') >= 5 ? 11 : 10;
+        const lbl = node.data('label');
+        const lw  = lbl.length * CHAR_W * (fs / 10);
+        const lh  = fs * 1.4;
+        const lx  = rp.x - lw / 2;
+        const ly  = rp.y + rh / 2 + 2;
+
+        const hits = shown.some(r =>
+          lx < r.x2 + PAD && lx + lw > r.x - PAD &&
+          ly < r.y2 + PAD && ly + lh > r.y - PAD
+        );
+
+        if (hits) {
+          node.addClass('hide-label');
+        } else {
+          node.removeClass('hide-label');
+          shown.push({ x: lx, y: ly, x2: lx + lw, y2: ly + lh });
+        }
+      });
+      cy.endBatch();
+    }
+
+    let _labelTimer;
+    cy.on('zoom pan', () => { clearTimeout(_labelTimer); _labelTimer = setTimeout(updateLabels, 80); });
+
+    /* ── Edge title labels — fit to edge screen length ───────── */
+    let _currentFocalId = null;
+
+    function setEdgeLabels(edges) {
+      const z       = cy.zoom();
+      const CHAR_W  = 5.5;   // approx px per char at font-size 9
+      const MIN_PX  = 60;    // edges shorter than this get no label
+      const titles  = window._EDGE_TITLES || {};
+
+      cy.startBatch();
+      edges.forEach(edge => {
+        const sp  = edge.source().position();
+        const tp  = edge.target().position();
+        const len = Math.sqrt((sp.x - tp.x) ** 2 + (sp.y - tp.y) ** 2) * z;
+
+        if (len < MIN_PX) { edge.data('edgeLabel', ''); return; }
+
+        const list    = titles[edge.id()] || [];
+        if (!list.length) { edge.data('edgeLabel', ''); return; }
+
+        const maxChars = Math.floor(len / CHAR_W);
+        let label = '';
+        for (let i = 0; i < list.length; i++) {
+          const sep  = i === 0 ? '' : '  |  ';
+          const part = sep + list[i];
+          if (label.length + part.length > maxChars) {
+            const rem = list.length - i;
+            const suffix = `  |  +${rem}`;
+            if (rem > 0 && label.length + suffix.length <= maxChars + 6)
+              label += suffix;
+            break;
+          }
+          label += part;
+        }
+        edge.data('edgeLabel', label);
+      });
+      cy.endBatch();
+    }
+
+    // Re-fit labels when user zooms in/out while ego is active
+    let _edgeLabelTimer;
+    cy.on('zoom', () => {
+      if (!_currentFocalId) return;
+      clearTimeout(_edgeLabelTimer);
+      _edgeLabelTimer = setTimeout(() => {
+        const focal = cy.getElementById(_currentFocalId);
+        setEdgeLabels(focal.connectedEdges().filter('.highlighted'));
+      }, 150);
+    });
+
+    /* ── Layout — preset (positions pre-computed offline) ──────── */
     cy.layout({
-      name:                        'fcose',
-      animate:                     false,
-      quality:                     'default',
-      randomize:                   true,
-      nodeDimensionsIncludeLabels: true,
-      nodeRepulsion:               () => 7500,
-      idealEdgeLength:             () => 70,
-      edgeElasticity:              () => 0.45,
-      gravity:                     0.12,
-      gravityRange:                4.2,
-      numIter:                     2500,
-      tile:                        true,
-      tilingPaddingVertical:       12,
-      tilingPaddingHorizontal:     12,
-      padding:                     40,
-      fit:                         true,
+      name:      'preset',
+      animate:   false,
+      fit:       true,
+      padding:   40,
+      positions: node => positions[node.id()],
     }).on('layoutstop', () => {
       document.getElementById('loader').style.display = 'none';
       document.getElementById('search-input').disabled = false;
       document.getElementById('search-input').focus();
+      cy.fit(undefined, 20);
+      cy.zoom({ level: cy.zoom() * 1.5, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
+      // defer so the zoom settles before computing label positions
+      setTimeout(updateLabels, 50);
     }).run();
 
     /* ── Highlight ────────────────────────────────────────────── */
     function highlight(nodeId) {
+      _currentFocalId = nodeId;
       const focal = cy.getElementById(nodeId);
       const nbrs  = focal.neighborhood('node');
       const edges = focal.connectedEdges();
@@ -357,13 +479,21 @@
 
       cy.animate({ fit: { eles: focal.union(nbrs), padding: 80 }, duration: 350 });
       document.getElementById('btn-reset').style.display = 'inline';
+      // Set edge labels after animation settles (zoom is final at ~380ms)
+      setTimeout(() => setEdgeLabels(edges), 400);
+      setTimeout(updateLabels, 400);
     }
 
     function clearHighlight() {
+      _currentFocalId = null;
       cy.startBatch();
       cy.elements().removeClass('dimmed focal neighbour highlighted');
+      cy.edges().forEach(e => e.data('edgeLabel', ''));
       cy.endBatch();
-      cy.animate({ fit: { padding: 40 }, duration: 350 });
+      cy.animate({ fit: { padding: 20 }, duration: 300 }, { complete: () => {
+        cy.animate({ zoom: { level: cy.zoom() * 1.5, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } }, duration: 200 });
+        setTimeout(updateLabels, 250);
+      }});
       document.getElementById('btn-reset').style.display = 'none';
       searchInput.value = '';
       searchClear.style.display = 'none';
@@ -374,6 +504,30 @@
     cy.on('tap', 'node', evt => { highlight(evt.target.id()); });
     cy.on('tap', evt => { if (evt.target === cy) clearHighlight(); });
 
+    /* ── Tooltip on hover ─────────────────────────────────────── */
+    const tooltip = document.getElementById('tooltip');
+    const cyContainer = document.getElementById('cy');
+
+    cy.on('mouseover', 'node', evt => {
+      const node = evt.target;
+      const d    = node.data();
+      const typeLabel = d.type === 'publisher' ? 'Editore' : 'Autore';
+      tooltip.innerHTML = `<strong>${d.label}</strong><br><span>${typeLabel} · ${d.degree} connession${d.degree === 1 ? 'e' : 'i'}</span>`;
+      tooltip.style.display = 'block';
+    });
+
+    cy.on('mousemove', 'node', evt => {
+      const rect = cyContainer.getBoundingClientRect();
+      const pos  = evt.originalEvent;
+      const x    = pos.clientX - rect.left + 14;
+      const y    = pos.clientY - rect.top  + 14;
+      // keep tooltip inside canvas
+      tooltip.style.left = (x + tooltip.offsetWidth > cyContainer.clientWidth  ? x - tooltip.offsetWidth - 28 : x) + 'px';
+      tooltip.style.top  = (y + tooltip.offsetHeight > cyContainer.clientHeight ? y - tooltip.offsetHeight - 28 : y) + 'px';
+    });
+
+    cy.on('mouseout', 'node', () => { tooltip.style.display = 'none'; });
+
     document.getElementById('btn-reset').addEventListener('click', clearHighlight);
 
     /* ── Zoom ─────────────────────────────────────────────────── */
@@ -382,8 +536,11 @@
       () => cy.animate({ zoom: { level: cy.zoom() * 1.4, renderedPosition: mid() }, duration: 200 }));
     document.getElementById('zoom-out').addEventListener('click',
       () => cy.animate({ zoom: { level: cy.zoom() / 1.4, renderedPosition: mid() }, duration: 200 }));
-    document.getElementById('zoom-fit').addEventListener('click',
-      () => cy.animate({ fit: { padding: 40 }, duration: 300 }));
+    document.getElementById('zoom-fit').addEventListener('click', () => {
+      cy.animate({ fit: { padding: 20 }, duration: 300 }, { complete: () => {
+        cy.animate({ zoom: { level: cy.zoom() * 1.5, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } }, duration: 200 });
+      }});
+    });
 
     /* ── Autocomplete ─────────────────────────────────────────── */
     const searchInput = document.getElementById('search-input');
